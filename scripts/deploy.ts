@@ -1,22 +1,18 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const feed = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419";
+  const limit = 0;
+  const interval = 0;
+  const price = 0;
+  const CB = await ethers.getContractFactory("CircuitBreaker");
+  const cb = await CB.deploy(feed, limit, interval, price);
 
-  const lockedAmount = ethers.utils.parseEther("1");
+  await cb.deployed();
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-  await lock.deployed();
-
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  console.log(`Circuit Breaker deployed to ${cb.address}`);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
