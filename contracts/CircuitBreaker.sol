@@ -5,13 +5,22 @@ import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract CircuitBreaker is AutomationCompatibleInterface {
-    bool public stopped = false;
     address public owner;
     uint8 public limit;
     uint256 public currentPrice;
     uint256 public interval;
     uint256 public lastRoundUpdated;
     AggregatorV3Interface internal priceFeed;
+    EventType[] public configuredEvents;
+
+    enum EventType {
+        Limit,
+        Staleness,
+        Volatility,
+        None
+    }
+
+    //------------------------------ EVENTS ----------------------------------
 
     event Limit(uint8 percentage);
     event Staleness(uint256 interval);
@@ -21,36 +30,63 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         uint256 indexed lastPrice
     );
 
+    // ------------------- MODIFIERS -------------------
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
     constructor(
         address _feed,
         uint8 _limit,
         uint256 _interval,
-        uint256 _price
+        uint256 _price,
+        uint8[] memory _eventTypes
     ) {
         owner = msg.sender;
         lastRoundUpdated = block.timestamp;
         priceFeed = AggregatorV3Interface(_feed);
+        for (uint256 i = 0; i < _eventTypes.length; i++) {
+            configuredEvents.push(EventType(_eventTypes[i]));
+        }
     }
 
-    function setLimit(uint8 _limit) public {
-        require(msg.sender == owner, "Only owner can set limit");
+    function getEvents() external view returns (EventType[] memory) {
+        return configuredEvents;
+    }
+
+    function addEventType(uint8 _eventType) external onlyOwner {
+        configuredEvents.push(EventType(_eventType));
+    }
+
+    function deleteEventType(uint8 _eventType) external onlyOwner {
+        for (uint256 i = 0; i < configuredEvents.length; i++) {
+            if (configuredEvents[i] == EventType(_eventType)) {
+                configuredEvents[i] = configuredEvents[
+                    configuredEvents.length - 1
+                ];
+                configuredEvents.pop();
+                break;
+            }
+        }
+    }
+
+    function setLimit(uint8 _limit) external onlyOwner {
         limit = _limit;
         emit Limit(limit);
     }
 
-    function setStaleness(uint256 _interval) public {
-        require(msg.sender == owner, "Only owner can set staleness");
+    function setStaleness(uint256 _interval) external onlyOwner {
         interval = _interval;
         emit Staleness(interval);
     }
 
-    function setVolatility(uint256 _currentPrice) public {
-        require(msg.sender == owner, "Only owner can set volatility");
+    function setVolatility(uint256 _currentPrice) external onlyOwner {
         currentPrice = _currentPrice;
     }
 
-    function updateFeed(address _feed) public {
-        require(msg.sender == owner, "Only owner can update feed");
+    function updateFeed(address _feed) external onlyOwner {
         priceFeed = AggregatorV3Interface(_feed);
     }
 
@@ -65,36 +101,43 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         return (price, timeStamp);
     }
 
-    function checkVolatility(int256 _price) internal returns (bool) {
+    function checkVolatility(int256 _price)
+        internal
+        view
+        returns (bool, EventType)
+    {
         (bool v, uint256 pc) = (calculateChange(_price));
         if (v) {
-            emit Volatility(pc, uint256(_price), currentPrice);
-            return true;
+            return (true, EventType.Volatility);
         }
 
-        return false;
+        return (false, EventType.Volatility);
     }
 
-    function checkStaleness() internal returns (bool) {
-        (int256 price, uint256 timeStamp) = getLatestPrice();
-        if (block.timestamp - timeStamp > interval) {
-            return true;
+    function checkStaleness(uint256 _timeStamp)
+        internal
+        view
+        returns (bool, EventType)
+    {
+        if (block.timestamp - _timeStamp > interval) {
+            return (true, EventType.Staleness);
         }
-        emit Staleness(interval);
-        return false;
+        return (false, EventType.Staleness);
     }
 
-    function checkLimit() internal returns (bool) {
-        (int256 price, uint256 timeStamp) = getLatestPrice();
-        if (uint256(price) > currentPrice) {
-            return true;
+    function checkLimit(int256 _price) internal view returns (bool, EventType) {
+        if (uint256(_price) > currentPrice) {
+            return (true, EventType.Limit);
         }
-        emit Limit(limit);
-        return false;
+        return (false, EventType.Limit);
     }
 
     // (new_value - original_value) / |original_value| * 100
-    function calculateChange(int256 price) internal returns (bool, uint256) {
+    function calculateChange(int256 price)
+        internal
+        view
+        returns (bool, uint256)
+    {
         if (uint256(price) >= currentPrice) {
             uint256 priceDiff = uint256(price) - currentPrice;
             uint256 percentage = (priceDiff * 100) / currentPrice;
@@ -112,6 +155,32 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         return (false, 0);
     }
 
+    function checkEvents(int256 _price, uint256 _timeStamp)
+        internal
+        view
+        returns (bool, EventType)
+    {
+        for (uint256 i = 0; i < configuredEvents.length; i++) {
+            if (configuredEvents[i] == EventType.Volatility) {
+                (bool v, EventType e) = checkVolatility(_price);
+                if (v) {
+                    return (true, e);
+                }
+            } else if (configuredEvents[i] == EventType.Staleness) {
+                (bool s, EventType e) = checkStaleness(_timeStamp);
+                if (s) {
+                    return (true, e);
+                }
+            } else if (configuredEvents[i] == EventType.Limit) {
+                (bool l, EventType e) = checkLimit(_price);
+                if (l) {
+                    return (true, e);
+                }
+            }
+        }
+        return (false, EventType.None);
+    }
+
     function checkUpkeep(
         bytes calldata /* checkData */
     )
@@ -125,20 +194,24 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     {
         (int256 price, uint256 timestamp) = getLatestPrice();
 
-        if (timestamp - lastRoundUpdated > interval) {
-            upkeepNeeded = true;
-        }
-        uint256 priceDiff = uint256(price) - currentPrice;
-        uint256 percentage = (priceDiff * 100) / currentPrice;
-        upkeepNeeded = percentage > limit;
+        (bool upkeepNeeded, ) = checkEvents(price, timestamp);
     }
 
     function performUpkeep(
         bytes calldata /* performData */
     ) external override {
         (int256 price, uint256 timeStamp) = getLatestPrice();
-        if (checkStaleness() || checkVolatility(price) || checkLimit()) {
-            // DO SOMETHING
+        (bool upkeepNeeded, EventType e) = checkEvents(price, timeStamp);
+        if (upkeepNeeded) {
+            if (e == EventType.Volatility) {
+                (bool v, uint256 pc) = (calculateChange(price));
+                emit Volatility(pc, uint256(price), currentPrice);
+            } else if (e == EventType.Staleness) {
+                emit Staleness(interval);
+            } else if (e == EventType.Limit) {
+                emit Limit(limit);
+            }
         }
+        // DO SOMETHING | User defined function
     }
 }
