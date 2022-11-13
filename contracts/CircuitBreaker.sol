@@ -10,7 +10,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     uint256 public currentPrice;
     uint256 public interval;
     uint256 public lastRoundUpdated;
-    AggregatorV3Interface internal priceFeed;
+    AggregatorV3Interface public priceFeed;
     EventType[] public configuredEvents;
 
     enum EventType {
@@ -194,7 +194,8 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     {
         (int256 price, uint256 timestamp) = getLatestPrice();
 
-        (bool upkeepNeeded, ) = checkEvents(price, timestamp);
+        (bool needed, ) = checkEvents(price, timestamp);
+        upkeepNeeded = needed;
     }
 
     function performUpkeep(
