@@ -10,7 +10,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     uint256 public currentPrice;
     uint256 public interval;
     uint256 public lastRoundUpdated;
-    AggregatorV3Interface internal priceFeed;
+    AggregatorV3Interface public priceFeed;
     EventType[] public configuredEvents;
 
     enum EventType {
@@ -74,12 +74,10 @@ contract CircuitBreaker is AutomationCompatibleInterface {
 
     function setLimit(uint8 _limit) external onlyOwner {
         limit = _limit;
-        emit Limit(limit);
     }
 
     function setStaleness(uint256 _interval) external onlyOwner {
         interval = _interval;
-        emit Staleness(interval);
     }
 
     function setVolatility(uint256 _currentPrice) external onlyOwner {
@@ -194,7 +192,8 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     {
         (int256 price, uint256 timestamp) = getLatestPrice();
 
-        (bool upkeepNeeded, ) = checkEvents(price, timestamp);
+        (bool needed, ) = checkEvents(price, timestamp);
+        upkeepNeeded = needed;
     }
 
     function performUpkeep(
