@@ -74,12 +74,10 @@ contract CircuitBreaker is AutomationCompatibleInterface {
 
     function setLimit(uint8 _limit) external onlyOwner {
         limit = _limit;
-        emit Limit(limit);
     }
 
     function setStaleness(uint256 _interval) external onlyOwner {
         interval = _interval;
-        emit Staleness(interval);
     }
 
     function setVolatility(uint256 _currentPrice) external onlyOwner {

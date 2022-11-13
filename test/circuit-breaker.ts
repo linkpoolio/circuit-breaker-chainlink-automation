@@ -13,7 +13,6 @@ enum EventType {
 
 describe("Circuit Breaker", function () {
   let owner: any, feed: any, limit: any, interval: any, price: any, events: any;
-  let vrfCoordinatorV2Mock: any;
   let circuitBreaker: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
@@ -22,8 +21,7 @@ describe("Circuit Breaker", function () {
     limit = 0;
     interval = 0;
     price = 0;
-    events = [0];
-    // vrfCoordinatorV2Mock = await deploy("VRFCoordinatorV2Mock");
+    events = [];
     circuitBreaker = await deploy("CircuitBreaker", [
       feed,
       limit,
@@ -31,17 +29,6 @@ describe("Circuit Breaker", function () {
       price,
       events,
     ]);
-  });
-
-  it("Should retrieve events", async function () {
-    const e = await circuitBreaker.getEvents();
-    expect(e[0]).to.equal(EventType.Limit);
-  });
-
-  it("Should add event type", async function () {
-    await circuitBreaker.addEventType(2);
-    const e = await circuitBreaker.getEvents();
-    expect(e[1]).to.equal(EventType.Volatility);
   });
 
   describe("constructor", function () {
@@ -56,21 +43,35 @@ describe("Circuit Breaker", function () {
     });
   });
 
+  describe("User Actions", function () {
+    it("Should retrieve events", async function () {
+      const e = await circuitBreaker.getEvents();
+      expect(e.length).to.equal(0);
+    });
+    it("Should add event type", async function () {
+      await circuitBreaker.addEventType(2);
+      const e = await circuitBreaker.getEvents();
+      expect(e[0]).to.equal(EventType.Volatility);
+    });
+    it("Should delete event", async function () {
+      await circuitBreaker.deleteEventType(2);
+      const e = await circuitBreaker.getEvents();
+      expect(e.length).to.equal(0);
+    });
+  });
+
   describe("checkUpkeep", function () {
     it("returns false if no events are set", async () => {
-      console.log((await circuitBreaker.getEvents()).length);
       await network.provider.send("evm_increaseTime", [interval + 1]);
       await network.provider.request({ method: "evm_mine", params: [] });
       const { upkeepNeeded } = await circuitBreaker.callStatic.checkUpkeep(
         "0x"
       );
-      console.log(upkeepNeeded);
       assert(!upkeepNeeded);
     });
   });
   describe("performUpkeep", function () {
     it("can only run if checkupkeep is true", async () => {
-      // await raffle.enterRaffle({ value: raffleEntranceFee });
       await network.provider.send("evm_increaseTime", [interval + 1]);
       await network.provider.request({ method: "evm_mine", params: [] });
       const tx = await circuitBreaker.performUpkeep("0x");
@@ -78,20 +79,12 @@ describe("Circuit Breaker", function () {
     });
     // it("reverts if checkup is false", async () => {
     //   await expect(circuitBreaker.performUpkeep("0x")).to.be.revertedWith(
-    //     "Raffle__UpkeepNotNeeded"
+    //     "CircuitBreaker__UpkeepNotNeeded"
     //   );
     // });
-    // it("updates the raffle state and emits a requestId", async () => {
-    //   // Too many asserts in this test!
-    //   // await circuitBreaker.enterRaffle({ value: raffleEntranceFee });
-    //   await network.provider.send("evm_increaseTime", [interval + 1]);
-    //   await network.provider.request({ method: "evm_mine", params: [] });
-    //   const txResponse = await circuitBreaker.performUpkeep("0x"); // emits requestId
-    //   const txReceipt = await txResponse.wait(1); // waits 1 block
-    //   const raffleState = await circuitBreaker.getRaffleState(); // updates state
-    //   const requestId = txReceipt.events[1].args.requestId;
-    //   assert(requestId.toNumber() > 0);
-    //   assert(raffleState == 1); // 0 = open, 1 = calculating
-    // });
+    it("emits correct event on performUpkeep", async () => {
+      await circuitBreaker.addEventType(0);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Limit")
+    });
   });
 });
