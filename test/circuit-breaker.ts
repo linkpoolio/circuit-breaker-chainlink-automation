@@ -12,7 +12,14 @@ enum EventType {
 }
 
 describe("Circuit Breaker", function () {
-  let owner: any, feed: any, limit: any, interval: any, price: any, events: any;
+  let owner: any,
+    feed: any,
+    limit: any,
+    interval: any,
+    price: any,
+    events: any,
+    registry: any,
+    autoID: any;
   let circuitBreaker: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
@@ -29,6 +36,9 @@ describe("Circuit Breaker", function () {
       price,
       events,
     ]);
+    registry = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
+    autoID =
+      "79397418041944963404933264302166499203692745230067317398393317479845798937310";
   });
 
   describe("constructor", function () {
@@ -44,19 +54,37 @@ describe("Circuit Breaker", function () {
   });
 
   describe("User Actions", function () {
-    it("Should retrieve events", async function () {
+    it("should retrieve events", async function () {
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
     });
-    it("Should add event type", async function () {
+    it("should add event type", async function () {
       await circuitBreaker.addEventType(2);
       const e = await circuitBreaker.getEvents();
       expect(e[0]).to.equal(EventType.Volatility);
     });
-    it("Should delete event", async function () {
+    it("should delete event", async function () {
       await circuitBreaker.deleteEventType(2);
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
+    });
+    it("should add automation registry and UpkeepID", async function () {
+      await circuitBreaker.addAutomationRegistry(registry, autoID);
+      expect(await circuitBreaker.registry()).to.equal(registry);
+      expect(await circuitBreaker.autoID()).to.equal(autoID);
+    });
+    it("should not allow adding the same event type twice", async function () {
+      await circuitBreaker.addEventType(2);
+      await expect(circuitBreaker.addEventType(2)).to.be.revertedWith(
+        "Event type already enabled"
+      );
+      const e = await circuitBreaker.getEvents();
+      expect(e.length).to.equal(1);
+    });
+    it("should not allow adding an unlisted event type", async function () {
+      await expect(circuitBreaker.addEventType(4)).to.be.revertedWith(
+        "Invalid event type"
+      );
     });
   });
 
@@ -77,14 +105,12 @@ describe("Circuit Breaker", function () {
       const tx = await circuitBreaker.performUpkeep("0x");
       assert(tx);
     });
-    // it("reverts if checkup is false", async () => {
-    //   await expect(circuitBreaker.performUpkeep("0x")).to.be.revertedWith(
-    //     "CircuitBreaker__UpkeepNotNeeded"
-    //   );
-    // });
     it("emits correct event on performUpkeep", async () => {
       await circuitBreaker.addEventType(0);
-      await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Limit")
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Limit"
+      );
     });
   });
 });
