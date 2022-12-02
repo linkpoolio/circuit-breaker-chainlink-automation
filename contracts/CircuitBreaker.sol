@@ -6,8 +6,8 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract CircuitBreaker is AutomationCompatibleInterface {
     address public owner;
-    uint8 public limit;
-    uint256 public currentPrice;
+    int256 public limit;
+    int256 public currentPrice;
     uint256 public interval;
     uint256 public lastRoundUpdated;
     AggregatorV3Interface public priceFeed;
@@ -22,12 +22,12 @@ contract CircuitBreaker is AutomationCompatibleInterface {
 
     //------------------------------ EVENTS ----------------------------------
 
-    event Limit(uint8 percentage);
+    event Limit(int256 percentage);
     event Staleness(uint256 interval);
     event Volatility(
-        uint256 indexed percentage,
+        int256 indexed percentage,
         uint256 indexed currentPrice,
-        uint256 indexed lastPrice
+        int256 indexed lastPrice
     );
 
     // ------------------- MODIFIERS -------------------
@@ -72,7 +72,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         }
     }
 
-    function setLimit(uint8 _limit) external onlyOwner {
+    function setLimit(int256 _limit) external onlyOwner {
         limit = _limit;
     }
 
@@ -80,7 +80,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         interval = _interval;
     }
 
-    function setVolatility(uint256 _currentPrice) external onlyOwner {
+    function setVolatility(int256 _currentPrice) external onlyOwner {
         currentPrice = _currentPrice;
     }
 
@@ -104,7 +104,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         view
         returns (bool, EventType)
     {
-        (bool v, uint256 pc) = (calculateChange(_price));
+        (bool v, int256 pc) = (calculateChange(_price));
         if (v) {
             return (true, EventType.Volatility);
         }
@@ -124,30 +124,21 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     }
 
     function checkLimit(int256 _price) internal view returns (bool, EventType) {
-        if (uint256(_price) > currentPrice) {
+        if (_price > currentPrice) {
             return (true, EventType.Limit);
         }
         return (false, EventType.Limit);
     }
 
-    // (new_value - original_value) / |original_value| * 100
     function calculateChange(int256 price)
         internal
         view
-        returns (bool, uint256)
+        returns (bool, int256)
     {
-        if (uint256(price) >= currentPrice) {
-            uint256 priceDiff = uint256(price) - currentPrice;
-            uint256 percentage = (priceDiff * 100) / currentPrice;
-            if (percentage > limit) {
-                return (true, percentage);
-            }
-        } else {
-            uint256 priceDiff = currentPrice - uint256(price);
-            uint256 percentage = (priceDiff * 100) / uint256(price);
-            if (percentage > limit) {
-                return (true, percentage);
-            }
+        int256 percentageChange = (price - currentPrice) / currentPrice * 100;
+        int256 positiveValue = percentageChange < 0 ? -percentageChange : percentageChange;
+        if (positiveValue > limit) {
+            return (true, positiveValue);
         }
 
         return (false, 0);
@@ -203,7 +194,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         (bool upkeepNeeded, EventType e) = checkEvents(price, timeStamp);
         if (upkeepNeeded) {
             if (e == EventType.Volatility) {
-                (bool v, uint256 pc) = (calculateChange(price));
+                (bool v, int256 pc) = (calculateChange(price));
                 emit Volatility(pc, uint256(price), currentPrice);
             } else if (e == EventType.Staleness) {
                 emit Staleness(interval);
