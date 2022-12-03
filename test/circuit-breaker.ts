@@ -87,4 +87,17 @@ describe("Circuit Breaker", function () {
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Limit")
     });
   });
+
+  describe('calculateChange', function () {
+    it('should run calculateChange on volatility and perform upkeep because of deviation', async () => {
+      await circuitBreaker.addEventType(2); // Volatility
+      
+      const price = 10;
+      const percentage = 25;
+      await circuitBreaker.setVolatility(price, percentage)
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Volatility")
+
+    });
+  });
+  
 });

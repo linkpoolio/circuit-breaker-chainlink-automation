@@ -8,6 +8,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     address public owner;
     int256 public limit;
     int256 public currentPrice;
+    int8 public volatilityPercentage;
     uint256 public interval;
     uint256 public lastRoundUpdated;
     AggregatorV3Interface public priceFeed;
@@ -80,8 +81,9 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         interval = _interval;
     }
 
-    function setVolatility(int256 _currentPrice) external onlyOwner {
+    function setVolatility(int256 _currentPrice, int8 _percentage) external onlyOwner {
         currentPrice = _currentPrice;
+        volatilityPercentage = _percentage;
     }
 
     function updateFeed(address _feed) external onlyOwner {
@@ -137,7 +139,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     {
         int256 percentageChange = (price - currentPrice) / currentPrice * 100;
         int256 positiveValue = percentageChange < 0 ? -percentageChange : percentageChange;
-        if (positiveValue > limit) {
+        if (positiveValue > volatilityPercentage) {
             return (true, positiveValue);
         }
 
