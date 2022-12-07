@@ -41,6 +41,11 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         _;
     }
 
+    modifier onlyContract() {
+        require(msg.sender == owner || msg.sender == address(this));
+        _;
+    }
+
     constructor(
         address _feed,
         uint8 _limit,
@@ -180,7 +185,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         return (false, EventType.None);
     }
 
-    function customFunction() public {
+    function customFunction() public onlyContract {
         externalContract.call(functionSelector);
     }
 

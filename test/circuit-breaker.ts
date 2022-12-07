@@ -139,5 +139,18 @@ describe("Circuit Breaker", function () {
       await circuitBreaker.pauseCustomFunction();
       assert((await circuitBreaker.usingExternalContract()) === false);
     });
+    it("should run function in upkeep", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
+      );
+      await circuitBreaker.addEventType(0);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Limit"
+      );
+      const number = await customMock.num();
+      assert(number == 777);
+    });
   });
 });
