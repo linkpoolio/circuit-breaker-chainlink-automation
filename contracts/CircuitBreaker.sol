@@ -10,7 +10,6 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     int256 public currentPrice;
     int8 public volatilityPercentage;
     uint256 public interval;
-    uint256 public lastRoundUpdated;
     address public externalContract;
     bytes public functionSelector;
     bool public usingExternalContract;
@@ -46,15 +45,8 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         _;
     }
 
-    constructor(
-        address _feed,
-        uint8 _limit,
-        uint256 _interval,
-        uint256 _price,
-        uint8[] memory _eventTypes
-    ) {
+    constructor(address _feed, uint8[] memory _eventTypes) {
         owner = msg.sender;
-        lastRoundUpdated = block.timestamp;
         priceFeed = AggregatorV3Interface(_feed);
         for (uint256 i = 0; i < _eventTypes.length; i++) {
             configuredEvents.push(EventType(_eventTypes[i]));
@@ -66,6 +58,12 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     }
 
     function addEventType(uint8 _eventType) external onlyOwner {
+        for (uint256 i = 0; i < configuredEvents.length; i++) {
+            require(
+                configuredEvents[i] != EventType(_eventType),
+                "Event already added."
+            );
+        }
         configuredEvents.push(EventType(_eventType));
     }
 
@@ -102,13 +100,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     }
 
     function getLatestPrice() internal view returns (int256, uint256) {
-        (
-            uint80 roundId,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answerRound
-        ) = priceFeed.latestRoundData();
+        (, int256 price, , uint256 timeStamp, ) = priceFeed.latestRoundData();
         return (price, timeStamp);
     }
 
@@ -244,7 +236,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         if (upkeepNeeded) {
             for (uint256 i = 0; i < e.length; i++) {
                 if (e[i] == EventType.Volatility) {
-                    (bool v, int256 pc) = (calculateChange(price));
+                    (, int256 pc) = (calculateChange(price));
                     emit Volatility(pc, uint256(price), currentPrice);
                 } else if (e[i] == EventType.Staleness) {
                     emit Staleness(interval);

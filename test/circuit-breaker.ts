@@ -29,13 +29,7 @@ describe("Circuit Breaker", function () {
     price = 0;
     events = [];
     customMock = await deploy("CustomMock");
-    circuitBreaker = await deploy("CircuitBreaker", [
-      feed,
-      limit,
-      interval,
-      price,
-      events,
-    ]);
+    circuitBreaker = await deploy("CircuitBreaker", [feed, events]);
   });
 
   describe("constructor", function () {
@@ -64,6 +58,12 @@ describe("Circuit Breaker", function () {
       await circuitBreaker.deleteEventType(2);
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
+    });
+    it("Should not add event type if already exists", async function () {
+      await circuitBreaker.addEventType(2);
+      expect(circuitBreaker.addEventType(2)).to.be.revertedWith(
+        "Event already added."
+      );
     });
   });
 
