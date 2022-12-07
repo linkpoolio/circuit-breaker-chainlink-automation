@@ -3,8 +3,9 @@ pragma solidity >=0.8.17;
 
 import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
-contract CircuitBreaker is AutomationCompatibleInterface {
+contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
     address public owner;
     int256 public limit;
     int256 public currentPrice;
@@ -13,6 +14,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     address public externalContract;
     bytes public functionSelector;
     bool public usingExternalContract;
+    address public keeperRegistryAddress;
     AggregatorV3Interface public priceFeed;
     EventType[] public configuredEvents;
 
@@ -32,7 +34,11 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         uint256 indexed currentPrice,
         int256 indexed lastPrice
     );
+    event KeeperRegistryAddressUpdated(address oldAddress, address newAddress);
 
+    // Errors
+
+    error OnlyKeeperRegistry();
     // ------------------- MODIFIERS -------------------
 
     modifier onlyOwner() {
@@ -45,9 +51,21 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         _;
     }
 
-    constructor(address _feed, uint8[] memory _eventTypes) {
+    modifier onlyKeeperRegistry() {
+        if (msg.sender != keeperRegistryAddress) {
+            revert OnlyKeeperRegistry();
+        }
+        _;
+    }
+
+    constructor(
+        address _feed,
+        uint8[] memory _eventTypes,
+        address _keeperRegistryAddress
+    ) {
         owner = msg.sender;
         priceFeed = AggregatorV3Interface(_feed);
+        setKeeperRegistryAddress(_keeperRegistryAddress);
         for (uint256 i = 0; i < _eventTypes.length; i++) {
             configuredEvents.push(EventType(_eventTypes[i]));
         }
@@ -97,6 +115,21 @@ contract CircuitBreaker is AutomationCompatibleInterface {
 
     function updateFeed(address _feed) external onlyOwner {
         priceFeed = AggregatorV3Interface(_feed);
+    }
+
+    /**
+     * @notice Sets the keeper registry address.
+     */
+    function setKeeperRegistryAddress(address _keeperRegistryAddress)
+        public
+        onlyOwner
+    {
+        require(_keeperRegistryAddress != address(0));
+        emit KeeperRegistryAddressUpdated(
+            keeperRegistryAddress,
+            _keeperRegistryAddress
+        );
+        keeperRegistryAddress = _keeperRegistryAddress;
     }
 
     function getLatestPrice() internal view returns (int256, uint256) {
@@ -214,6 +247,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         external
         view
         override
+        whenNotPaused
         returns (
             bool upkeepNeeded,
             bytes memory /* performData */
@@ -227,7 +261,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
 
     function performUpkeep(
         bytes calldata /* performData */
-    ) external override {
+    ) external override whenNotPaused {
         (int256 price, uint256 timeStamp) = getLatestPrice();
         (bool upkeepNeeded, EventType[] memory e) = checkEvents(
             price,
@@ -248,5 +282,26 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         if (usingExternalContract) {
             customFunction();
         }
+    }
+
+    /**
+     * @notice Pause to prevent executing performUpkeep.
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause the contract.
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    /**
+     * @notice Check contract status.
+     */
+    function isPaused() external view returns (bool) {
+        return paused();
     }
 }

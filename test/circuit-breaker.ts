@@ -29,7 +29,11 @@ describe("Circuit Breaker", function () {
     price = 0;
     events = [];
     customMock = await deploy("CustomMock");
-    circuitBreaker = await deploy("CircuitBreaker", [feed, events]);
+    circuitBreaker = await deploy("CircuitBreaker", [
+      feed,
+      events,
+      owner.address,
+    ]);
   });
 
   describe("constructor", function () {
