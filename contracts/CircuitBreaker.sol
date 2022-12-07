@@ -71,10 +71,18 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         }
     }
 
+    /**
+     * @notice Gets the event types that are configured.
+     * @return EventType[] The list of event types.
+     */
     function getEvents() external view returns (EventType[] memory) {
         return configuredEvents;
     }
 
+    /**
+     * @notice Adds an event type to the list of configured events.
+     * @param _eventType The event type to add based on the EventType enum.
+     */
     function addEventType(uint8 _eventType) external onlyOwner {
         for (uint256 i = 0; i < configuredEvents.length; i++) {
             require(
@@ -85,6 +93,10 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         configuredEvents.push(EventType(_eventType));
     }
 
+    /**
+     * @notice Deletes an event type from the list of configured events.
+     * @param _eventType The event type to delete based on the EventType enum.
+     */
     function deleteEventType(uint8 _eventType) external onlyOwner {
         for (uint256 i = 0; i < configuredEvents.length; i++) {
             if (configuredEvents[i] == EventType(_eventType)) {
@@ -97,14 +109,27 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         }
     }
 
+    /**
+     * @notice Sets limit event parameters.
+     * @param _limit The price to watch for.
+     */
     function setLimit(int256 _limit) external onlyOwner {
         limit = _limit;
     }
 
+    /**
+     * @notice Sets staleness event parameters.
+     * @param _interval The interval to check against.
+     */
     function setStaleness(uint256 _interval) external onlyOwner {
         interval = _interval;
     }
 
+    /**
+     * @notice Sets volatility event parameters.
+     * @param _currentPrice The current price.
+     * @param _percentage The percentage change to check against.
+     */
     function setVolatility(int256 _currentPrice, int8 _percentage)
         external
         onlyOwner
@@ -113,6 +138,10 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         volatilityPercentage = _percentage;
     }
 
+    /**
+     * @notice Update price feed address.
+     * @param _feed The address of the price feed.
+     */
     function updateFeed(address _feed) external onlyOwner {
         priceFeed = AggregatorV3Interface(_feed);
     }
@@ -220,10 +249,18 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         return (false, triggeredEvents);
     }
 
+    /**
+     * @notice Custom function to be called by the keeper.
+     */
     function customFunction() public onlyContract {
         externalContract.call(functionSelector);
     }
 
+    /**
+     * @notice Set custom function.
+     * @param _externalContract The address of the external contract.
+     * @param _functionSelector The function selector of the external contract.
+     */
     function setCustomFunction(
         address _externalContract,
         bytes memory _functionSelector
@@ -233,10 +270,16 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         usingExternalContract = true;
     }
 
+    /**
+     * @notice Pause custom function from running in upkeep.
+     */
     function pauseCustomFunction() external onlyOwner {
         usingExternalContract = false;
     }
 
+    /**
+     * @notice Unpause custom function from running in upkeep.
+     */
     function unpauseCustomFunction() external onlyOwner {
         usingExternalContract = true;
     }
