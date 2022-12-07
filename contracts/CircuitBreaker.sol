@@ -11,6 +11,9 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     int8 public volatilityPercentage;
     uint256 public interval;
     uint256 public lastRoundUpdated;
+    address public externalContract;
+    bytes public functionSelector;
+    bool public usingExternalContract;
     AggregatorV3Interface public priceFeed;
     EventType[] public configuredEvents;
 
@@ -81,7 +84,10 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         interval = _interval;
     }
 
-    function setVolatility(int256 _currentPrice, int8 _percentage) external onlyOwner {
+    function setVolatility(int256 _currentPrice, int8 _percentage)
+        external
+        onlyOwner
+    {
         currentPrice = _currentPrice;
         volatilityPercentage = _percentage;
     }
@@ -137,8 +143,10 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         view
         returns (bool, int256)
     {
-        int256 percentageChange = (price - currentPrice) / currentPrice * 100;
-        int256 positiveValue = percentageChange < 0 ? -percentageChange : percentageChange;
+        int256 percentageChange = ((price - currentPrice) / currentPrice) * 100;
+        int256 positiveValue = percentageChange < 0
+            ? -percentageChange
+            : percentageChange;
         if (positiveValue > volatilityPercentage) {
             return (true, positiveValue);
         }
@@ -170,6 +178,27 @@ contract CircuitBreaker is AutomationCompatibleInterface {
             }
         }
         return (false, EventType.None);
+    }
+
+    function customFunction() public {
+        externalContract.call(functionSelector);
+    }
+
+    function setCustomFunction(
+        address _externalContract,
+        bytes memory _functionSelector
+    ) external onlyOwner {
+        externalContract = _externalContract;
+        functionSelector = _functionSelector;
+        usingExternalContract = true;
+    }
+
+    function pauseCustomFunction() external onlyOwner {
+        usingExternalContract = false;
+    }
+
+    function unpauseCustomFunction() external onlyOwner {
+        usingExternalContract = true;
     }
 
     function checkUpkeep(
@@ -204,6 +233,8 @@ contract CircuitBreaker is AutomationCompatibleInterface {
                 emit Limit(limit);
             }
         }
-        // DO SOMETHING | User defined function
+        if (usingExternalContract) {
+            customFunction();
+        }
     }
 }

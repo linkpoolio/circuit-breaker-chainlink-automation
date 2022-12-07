@@ -12,7 +12,13 @@ enum EventType {
 }
 
 describe("Circuit Breaker", function () {
-  let owner: any, feed: any, limit: any, interval: any, price: any, events: any;
+  let owner: any,
+    feed: any,
+    limit: any,
+    interval: any,
+    price: any,
+    events: any,
+    customMock: any;
   let circuitBreaker: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
@@ -22,6 +28,7 @@ describe("Circuit Breaker", function () {
     interval = 0;
     price = 0;
     events = [];
+    customMock = await deploy("CustomMock");
     circuitBreaker = await deploy("CircuitBreaker", [
       feed,
       limit,
@@ -84,20 +91,53 @@ describe("Circuit Breaker", function () {
     // });
     it("emits correct event on performUpkeep", async () => {
       await circuitBreaker.addEventType(0);
-      await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Limit")
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Limit"
+      );
     });
   });
 
-  describe('calculateChange', function () {
-    it('should run calculateChange on volatility and perform upkeep because of deviation', async () => {
+  describe("calculateChange", function () {
+    it("should run calculateChange on volatility and perform upkeep because of deviation", async () => {
       await circuitBreaker.addEventType(2); // Volatility
-      
+
       const price = 10;
       const percentage = 25;
-      await circuitBreaker.setVolatility(price, percentage)
-      await expect(circuitBreaker.performUpkeep("0x")).to.emit(circuitBreaker, "Volatility")
-
+      await circuitBreaker.setVolatility(price, percentage);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Volatility"
+      );
     });
   });
-  
+  describe("custom function", function () {
+    it("should set custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+      assert(
+        (await circuitBreaker.functionSelector()) ===
+          "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+    });
+    it("should call custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
+      );
+      await circuitBreaker.customFunction();
+      const number = await customMock.num();
+      assert(number == 777);
+    });
+    it("should pause custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+      await circuitBreaker.pauseCustomFunction();
+      assert((await circuitBreaker.usingExternalContract()) === false);
+    });
+  });
 });
