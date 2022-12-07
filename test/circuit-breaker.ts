@@ -18,8 +18,7 @@ describe("Circuit Breaker", function () {
     interval: any,
     price: any,
     events: any,
-    registry: any,
-    autoID: any;
+    customMock: any;
   let circuitBreaker: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
@@ -29,12 +28,11 @@ describe("Circuit Breaker", function () {
     interval = 0;
     price = 0;
     events = [];
+    customMock = await deploy("CustomMock");
     circuitBreaker = await deploy("CircuitBreaker", [
       feed,
-      limit,
-      interval,
-      price,
       events,
+      owner.address,
     ]);
     registry = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
     autoID =
@@ -68,22 +66,10 @@ describe("Circuit Breaker", function () {
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
     });
-    it("should add automation registry and UpkeepID", async function () {
-      await circuitBreaker.addAutomationRegistry(registry, autoID);
-      expect(await circuitBreaker.registry()).to.equal(registry);
-      expect(await circuitBreaker.autoID()).to.equal(autoID);
-    });
-    it("should not allow adding the same event type twice", async function () {
+    it("Should not add event type if already exists", async function () {
       await circuitBreaker.addEventType(2);
-      await expect(circuitBreaker.addEventType(2)).to.be.revertedWith(
-        "Event type already enabled"
-      );
-      const e = await circuitBreaker.getEvents();
-      expect(e.length).to.equal(1);
-    });
-    it("should not allow adding an unlisted event type", async function () {
-      await expect(circuitBreaker.addEventType(4)).to.be.revertedWith(
-        "Invalid event type"
+      expect(circuitBreaker.addEventType(2)).to.be.revertedWith(
+        "Event already added."
       );
     });
   });
@@ -111,6 +97,62 @@ describe("Circuit Breaker", function () {
         circuitBreaker,
         "Limit"
       );
+    });
+  });
+
+  describe("calculateChange", function () {
+    it("should run calculateChange on volatility and perform upkeep because of deviation", async () => {
+      await circuitBreaker.addEventType(2); // Volatility
+
+      const price = 10;
+      const percentage = 25;
+      await circuitBreaker.setVolatility(price, percentage);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Volatility"
+      );
+    });
+  });
+  describe("custom function", function () {
+    it("should set custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+      assert(
+        (await circuitBreaker.functionSelector()) ===
+          "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+    });
+    it("should call custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
+      );
+      await circuitBreaker.customFunction();
+      const number = await customMock.num();
+      assert(number == 777);
+    });
+    it("should pause custom function", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
+      );
+      await circuitBreaker.pauseCustomFunction();
+      assert((await circuitBreaker.usingExternalContract()) === false);
+    });
+    it("should run function in upkeep", async () => {
+      await circuitBreaker.setCustomFunction(
+        customMock.address,
+        "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
+      );
+      await circuitBreaker.addEventType(0);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "Limit"
+      );
+      const number = await customMock.num();
+      assert(number == 777);
     });
   });
 });
