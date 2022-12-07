@@ -84,11 +84,6 @@ describe("Circuit Breaker", function () {
       const tx = await circuitBreaker.performUpkeep("0x");
       assert(tx);
     });
-    // it("reverts if checkup is false", async () => {
-    //   await expect(circuitBreaker.performUpkeep("0x")).to.be.revertedWith(
-    //     "CircuitBreaker__UpkeepNotNeeded"
-    //   );
-    // });
     it("emits correct event on performUpkeep", async () => {
       await circuitBreaker.addEventType(0);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(

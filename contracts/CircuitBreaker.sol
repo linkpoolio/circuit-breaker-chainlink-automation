@@ -115,14 +115,18 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     function checkVolatility(int256 _price)
         internal
         view
-        returns (bool, EventType)
+        returns (
+            bool,
+            EventType,
+            int256
+        )
     {
         (bool v, int256 pc) = (calculateChange(_price));
         if (v) {
-            return (true, EventType.Volatility);
+            return (true, EventType.Volatility, pc);
         }
 
-        return (false, EventType.Volatility);
+        return (false, EventType.Volatility, 0);
     }
 
     function checkStaleness(uint256 _timeStamp)
@@ -137,7 +141,7 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     }
 
     function checkLimit(int256 _price) internal view returns (bool, EventType) {
-        if (_price > currentPrice) {
+        if (_price >= limit) {
             return (true, EventType.Limit);
         }
         return (false, EventType.Limit);
@@ -149,11 +153,11 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         returns (bool, int256)
     {
         int256 percentageChange = ((price - currentPrice) / currentPrice) * 100;
-        int256 positiveValue = percentageChange < 0
+        int256 absValue = percentageChange < 0
             ? -percentageChange
             : percentageChange;
-        if (positiveValue > volatilityPercentage) {
-            return (true, positiveValue);
+        if (absValue > volatilityPercentage) {
+            return (true, absValue);
         }
 
         return (false, 0);
@@ -162,27 +166,33 @@ contract CircuitBreaker is AutomationCompatibleInterface {
     function checkEvents(int256 _price, uint256 _timeStamp)
         internal
         view
-        returns (bool, EventType)
+        returns (bool, EventType[] memory)
     {
+        EventType[] memory triggeredEvents = new EventType[](
+            configuredEvents.length
+        );
         for (uint256 i = 0; i < configuredEvents.length; i++) {
             if (configuredEvents[i] == EventType.Volatility) {
-                (bool v, EventType e) = checkVolatility(_price);
+                (bool v, EventType e, ) = checkVolatility(_price);
                 if (v) {
-                    return (true, e);
+                    triggeredEvents[i] = e;
                 }
             } else if (configuredEvents[i] == EventType.Staleness) {
                 (bool s, EventType e) = checkStaleness(_timeStamp);
                 if (s) {
-                    return (true, e);
+                    triggeredEvents[i] = e;
                 }
             } else if (configuredEvents[i] == EventType.Limit) {
                 (bool l, EventType e) = checkLimit(_price);
                 if (l) {
-                    return (true, e);
+                    triggeredEvents[i] = e;
                 }
             }
         }
-        return (false, EventType.None);
+        if (triggeredEvents.length > 0) {
+            return (true, triggeredEvents);
+        }
+        return (false, triggeredEvents);
     }
 
     function customFunction() public onlyContract {
@@ -227,15 +237,20 @@ contract CircuitBreaker is AutomationCompatibleInterface {
         bytes calldata /* performData */
     ) external override {
         (int256 price, uint256 timeStamp) = getLatestPrice();
-        (bool upkeepNeeded, EventType e) = checkEvents(price, timeStamp);
+        (bool upkeepNeeded, EventType[] memory e) = checkEvents(
+            price,
+            timeStamp
+        );
         if (upkeepNeeded) {
-            if (e == EventType.Volatility) {
-                (bool v, int256 pc) = (calculateChange(price));
-                emit Volatility(pc, uint256(price), currentPrice);
-            } else if (e == EventType.Staleness) {
-                emit Staleness(interval);
-            } else if (e == EventType.Limit) {
-                emit Limit(limit);
+            for (uint256 i = 0; i < e.length; i++) {
+                if (e[i] == EventType.Volatility) {
+                    (bool v, int256 pc) = (calculateChange(price));
+                    emit Volatility(pc, uint256(price), currentPrice);
+                } else if (e[i] == EventType.Staleness) {
+                    emit Staleness(interval);
+                } else if (e[i] == EventType.Limit) {
+                    emit Limit(limit);
+                }
             }
         }
         if (usingExternalContract) {
