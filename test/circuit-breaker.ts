@@ -20,6 +20,8 @@ describe("Circuit Breaker", function () {
     events: any,
     customMock: any;
   let circuitBreaker: any;
+  let keeperRegistryAddress: any;
+  let autoID: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
     owner = accounts[0];
@@ -34,7 +36,7 @@ describe("Circuit Breaker", function () {
       events,
       owner.address,
     ]);
-    registry = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
+    keeperRegistryAddress = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
     autoID =
       "79397418041944963404933264302166499203692745230067317398393317479845798937310";
   });
