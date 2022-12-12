@@ -33,7 +33,7 @@ $ echo "NETWORK=ganache" >> .env
 $ echo "RPC_URL=\"http://127.0.0.1:7545\"" >> .env
 ```
 
-### 3. Deploy abi
+### 3. Deploy contract
 
 ```
 # from /root
