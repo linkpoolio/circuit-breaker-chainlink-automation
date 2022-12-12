@@ -15,7 +15,7 @@ function Pause() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       await contract.pause().catch((error) => {
-        setErroMessage(error.message);
+        setErroMessage(JSON.stringify(error));
       });
     } catch (error) {
       setErroMessage(error.message + JSON.stringify(error.data.data));

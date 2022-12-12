@@ -13,7 +13,7 @@ function AddEventType() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       addEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(JSON.stringify(error.data));
+        setErroMessage(JSON.stringify(error));
       });
     } catch (error) {
       setErroMessage(error.message);
@@ -45,9 +45,10 @@ function AddEventType() {
         <button onClick={handleAddEventType}>Add Event Type</button>
       </div>
       <div className="row">
-      <p>
+        <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>      </div>
+        </p>{" "}
+      </div>
     </div>
   );
 }

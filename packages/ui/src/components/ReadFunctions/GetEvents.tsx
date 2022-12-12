@@ -20,7 +20,7 @@ function GetEvents() {
           setEvents(res);
         })
         .catch((error) => {
-          setErroMessage(error.message);
+          setErroMessage(JSON.stringify(error));
         });
     } catch (error) {
       setErroMessage(error.message);

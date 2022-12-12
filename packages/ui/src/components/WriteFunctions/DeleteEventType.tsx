@@ -13,7 +13,7 @@ function DeleteEventType() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       deleteEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(error.message);
+        setErroMessage(JSON.stringify(error));
       });
     } catch (error) {
       setErroMessage(error.message + JSON.stringify(error.data.data));
