@@ -1,0 +1,61 @@
+import React, { useState } from "react";
+import { getContract } from "sdk/src/lib/utils";
+import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { unpause } from "sdk/src/WriteFunctions/Unpause";
+import { pause } from "sdk/src/WriteFunctions/Pause";
+
+function SetPause() {
+  const [contractAddress, setContractAddress] = useState("");
+  const [errorMessage, setErroMessage] = useState("");
+
+  async function handlePause() {
+    setErroMessage("");
+    try {
+      const contract = getContract(contractAddress, CircuitBreaker);
+      pause(contract).catch((error) => {
+        setErroMessage(JSON.stringify(error));
+      });
+    } catch (error) {
+      setErroMessage(error.message);
+    }
+  }
+
+  async function handleUnpause() {
+    setErroMessage("");
+    try {
+      const contract = getContract(contractAddress, CircuitBreaker);
+      unpause(contract).catch((error) => {
+        setErroMessage(JSON.stringify(error));
+      });
+    } catch (error) {
+      setErroMessage(error.message);
+    }
+  }
+
+  return (
+    <div className="container">
+      <div className="row">
+        <h2>Set Pause</h2>
+      </div>
+      <div className="row">
+        <input
+          type="string"
+          value={contractAddress}
+          placeholder="contractAddress (address)"
+          onChange={(e) => setContractAddress(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <button onClick={handlePause}>Pause</button>
+        <button onClick={handleUnpause}>Unpause</button>
+      </div>
+      <div className="row">
+        <p>
+          Error: <span className="error">{errorMessage}</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default SetPause;

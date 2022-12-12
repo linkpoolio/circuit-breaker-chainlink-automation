@@ -2,12 +2,10 @@ import { ethers } from "hardhat";
 
 async function main() {
   const feed = "0xA39434A63A52E749F02807ae27335515BA4b07F7";
-  const limit = 0;
-  const interval = 0;
-  const price = 0;
-  const events = [0, 1];
+  const keeperRegistryAddress = "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b";
+  const events = [0];
   const CB = await ethers.getContractFactory("CircuitBreaker");
-  const cb = await CB.deploy(feed, limit, interval, price, events);
+  const cb = await CB.deploy(feed, events, keeperRegistryAddress);
 
   await cb.deployed();
 

@@ -20,6 +20,8 @@ describe("Circuit Breaker", function () {
     events: any,
     customMock: any;
   let circuitBreaker: any;
+  let keeperRegistryAddress: any;
+  let autoID: any;
   beforeEach(async () => {
     const accounts = await ethers.getSigners();
     owner = accounts[0];
@@ -34,6 +36,9 @@ describe("Circuit Breaker", function () {
       events,
       owner.address,
     ]);
+    keeperRegistryAddress = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
+    autoID =
+      "79397418041944963404933264302166499203692745230067317398393317479845798937310";
   });
 
   describe("constructor", function () {
@@ -49,16 +54,16 @@ describe("Circuit Breaker", function () {
   });
 
   describe("User Actions", function () {
-    it("Should retrieve events", async function () {
+    it("should retrieve events", async function () {
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
     });
-    it("Should add event type", async function () {
+    it("should add event type", async function () {
       await circuitBreaker.addEventType(2);
       const e = await circuitBreaker.getEvents();
       expect(e[0]).to.equal(EventType.Volatility);
     });
-    it("Should delete event", async function () {
+    it("should delete event", async function () {
       await circuitBreaker.deleteEventType(2);
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
