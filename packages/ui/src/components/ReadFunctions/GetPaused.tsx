@@ -1,37 +1,58 @@
 import React, { useState } from "react";
-import { getContract } from "../../lib/utils";
-import CircuitBreaker from "../../abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { getContract } from "sdk/src/lib/utils";
+import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { getPaused } from "sdk/src/ReadFunctions/GetPaused";
+import "../../styles/main.css";
 
 function GetPaused() {
   const [contractAddress, setContractAddress] = useState("");
-  const [paused, setPaused] = useState(null);
+  const [errorMessage, setErroMessage] = useState("");
 
-  const contract = getContract(contractAddress, CircuitBreaker);
+  const [isPaused, setIsPaused] = useState("");
 
   async function handleGetPaused() {
-    const result = await contract.isPaused();
-    console.log(paused);
-    setPaused(result);
+    setIsPaused("");
+    setErroMessage("");
+    try {
+      const contract = getContract(contractAddress, CircuitBreaker);
+      getPaused(contract)
+        .then((res) => {
+          setIsPaused(String(res));
+        })
+        .catch((error) => {
+          setErroMessage(error.message);
+        });
+    } catch (error) {
+      setErroMessage(error.message);
+    }
   }
 
+  console.log(isPaused);
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "30%",
-        marginBottom: "5px",
-      }}
-    >
-      <h1>Get Paused</h1>
-      <input
-        type="string"
-        value={contractAddress}
-        placeholder="contractAddress(address)"
-        onChange={(e) => setContractAddress(e.target.value)}
-      />
-      <button onClick={handleGetPaused}>Get Events</button>
-      <p>Paused: {paused}</p>
+    <div className="container">
+      <div className="row">
+        <h2>Get Paused</h2>
+      </div>
+      <div className="row">
+        <input
+          type="string"
+          value={contractAddress}
+          placeholder="contractAddress (address)"
+          onChange={(e) => setContractAddress(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <button onClick={handleGetPaused}>Get Paused</button>
+      </div>
+      <div className="row">
+        <p>Is paused: {isPaused}</p>
+      </div>
+      <div className="row">
+        <p>
+          Error: <span className="error">{errorMessage}</span>
+        </p>
+      </div>
     </div>
   );
 }

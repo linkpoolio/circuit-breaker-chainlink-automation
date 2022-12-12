@@ -1,29 +1,31 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { addEventType } from "sdk/src/WriteFunctions/AddEventType";
+import { pause } from "sdk/src/ReadFunctions/GetPaused";
 
-function AddEventType() {
+function Pause() {
   const [contractAddress, setContractAddress] = useState("");
   const [eventType, setEventType] = useState("");
   const [errorMessage, setErroMessage] = useState("");
+  const [success, setSuccess] = useState("");
 
-  async function handleAddEventType() {
+  async function handleDeleteEventType() {
+    setSuccess("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      addEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(JSON.stringify(error.data));
+      await contract.pause().catch((error) => {
+        setErroMessage(error.message);
       });
     } catch (error) {
-      setErroMessage(error.message);
+      setErroMessage(error.message + JSON.stringify(error.data.data));
     }
   }
 
   return (
     <div className="container">
       <div className="row">
-        <h2>Add Event Type</h2>
+        <h2>Delete Event Type</h2>
       </div>
       <div className="row">
         <input
@@ -42,14 +44,18 @@ function AddEventType() {
         />
       </div>
       <div className="row">
-        <button onClick={handleAddEventType}>Add Event Type</button>
+        <button onClick={handleDeleteEventType}>Delete Event Type</button>
       </div>
       <div className="row">
-      <p>
+        <p>Status: {success}</p>
+      </div>
+      <div className="row">
+        <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>      </div>
+        </p>{" "}
+      </div>
     </div>
   );
 }
 
-export default AddEventType;
+export default Pause;

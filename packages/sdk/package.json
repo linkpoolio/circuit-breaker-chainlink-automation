@@ -1,0 +1,17 @@
+{
+  "name": "sdk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@metamask/detect-provider": "^2.0.0",
+    "@metamask/providers": "^10.2.1",
+    "ethers": "^5.7.2"
+  }
+}

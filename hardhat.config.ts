@@ -19,7 +19,7 @@ const config: Config = {
   solidity: "0.8.17",
   defaultNetwork: "hardhat",
   abiExporter: {
-    path: "./dev/ui/src/abi",
+    path: "./packages/sdk/src/abi",
     runOnCompile: true,
     format: "json",
   },

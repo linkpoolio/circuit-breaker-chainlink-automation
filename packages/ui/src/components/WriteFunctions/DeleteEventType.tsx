@@ -1,38 +1,55 @@
 import React, { useState } from "react";
-import { getContract } from "../../lib/utils";
-import CircuitBreaker from "../../abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { getContract } from "sdk/src/lib/utils";
+import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { deleteEventType } from "sdk/src/WriteFunctions/DeleteEventType";
 
-function GetEvents() {
+function DeleteEventType() {
   const [contractAddress, setContractAddress] = useState("");
-  const [events, setEvents] = useState(false);
+  const [eventType, setEventType] = useState("");
+  const [errorMessage, setErroMessage] = useState("");
 
-  const contract = getContract(contractAddress, CircuitBreaker);
-
-  async function handleGetEvents() {
-    const result = await contract.getEvents();
-    setEvents(result.join(","));
+  async function handleDeleteEventType() {
+    setErroMessage("");
+    try {
+      const contract = getContract(contractAddress, CircuitBreaker);
+      deleteEventType(contract, Number(eventType)).catch((error) => {
+        setErroMessage(error.message);
+      });
+    } catch (error) {
+      setErroMessage(error.message + JSON.stringify(error.data.data));
+    }
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "30%",
-        marginBottom: "5px",
-      }}
-    >
-      <h1>Get Events</h1>
-      <input
-        type="string"
-        value={contractAddress}
-        placeholder="contractAddress(address)"
-        onChange={(e) => setContractAddress(e.target.value)}
-      />
-      <button onClick={handleGetEvents}>Get Events</button>
-      <p>Events: {events}</p>
+    <div className="container">
+      <div className="row">
+        <h2>Delete Event Type</h2>
+      </div>
+      <div className="row">
+        <input
+          type="string"
+          value={contractAddress}
+          placeholder="contractAddress (address)"
+          onChange={(e) => setContractAddress(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <input
+          type="number"
+          value={eventType}
+          placeholder="eventType (uint8)"
+          onChange={(e) => setEventType(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <button onClick={handleDeleteEventType}>Delete Event Type</button>
+      </div>
+      <div className="row">
+      <p>
+          Error: <span className="error">{errorMessage}</span>
+        </p>      </div>
     </div>
   );
 }
 
-export default GetEvents;
+export default DeleteEventType;
