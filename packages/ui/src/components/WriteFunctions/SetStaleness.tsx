@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { addEventType } from "sdk/src/WriteFunctions/addEventType";
+import { setStaleness } from "sdk/src/WriteFunctions/setStaleness";
 
-function AddEventType() {
+function SetStaleness() {
   const [contractAddress, setContractAddress] = useState("");
-  const [eventType, setEventType] = useState("");
+  const [interval, setInterval] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleAddEventType() {
+  async function handleSetStaleness() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      addEventType(contract, Number(eventType)).catch((error) => {
+      setStaleness(contract, Number(interval)).catch((error) => {
         setErroMessage(JSON.stringify(error));
       });
     } catch (error) {
@@ -23,7 +23,7 @@ function AddEventType() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Add Event Type</h2>
+        <h2>Set Staleness</h2>
       </div>
       <div className="row">
         <input
@@ -36,13 +36,13 @@ function AddEventType() {
       <div className="row">
         <input
           type="number"
-          value={eventType}
-          placeholder="eventType (uint8)"
-          onChange={(e) => setEventType(e.target.value)}
+          value={interval}
+          placeholder="interval (uint256)"
+          onChange={(e) => setInterval(e.target.value)}
         />
       </div>
       <div className="row">
-        <button onClick={handleAddEventType}>Add Event Type</button>
+        <button onClick={handleSetStaleness}>Set Staleness</button>
       </div>
       <div className="row">
         <p>
@@ -53,4 +53,4 @@ function AddEventType() {
   );
 }
 
-export default AddEventType;
+export default SetStaleness;

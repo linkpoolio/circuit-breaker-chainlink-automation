@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/Unpause";
-import { pause } from "sdk/src/WriteFunctions/Pause";
+import { unpause } from "sdk/src/WriteFunctions/unpause";
+import { pause } from "sdk/src/WriteFunctions/pause";
 
 function SetPause() {
   const [contractAddress, setContractAddress] = useState("");

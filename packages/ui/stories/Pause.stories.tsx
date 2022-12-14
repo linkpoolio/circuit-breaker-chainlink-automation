@@ -1,7 +1,10 @@
 import React from "react";
 import { storiesOf } from "@storybook/react";
 import SetPause from "../src/components/WriteFunctions/SetPause";
+import GetPauseStatus from "../src/components/ReadFunctions/GetPauseStatus";
 
-storiesOf("Set Pause", module).add("pause or unpause contract", () => (
-  <SetPause />
+storiesOf("Pause", module).add("Pause, unpause or get pause status", () => (
+  <div style={{ display: "flex" }}>
+    <SetPause /> <GetPauseStatus />
+  </div>
 ));

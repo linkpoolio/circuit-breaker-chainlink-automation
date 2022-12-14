@@ -1,20 +1,28 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
-import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { addEventType } from "sdk/src/WriteFunctions/addEventType";
 
-function AddEventType() {
+import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { getLimit } from "sdk/src/ReadFunctions/getLimit";
+import "../../styles/main.css";
+
+function GetLimit() {
   const [contractAddress, setContractAddress] = useState("");
-  const [eventType, setEventType] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleAddEventType() {
+  const [limit, setLimit] = useState("");
+
+  async function handleGetLimit() {
+    setLimit("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      addEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(JSON.stringify(error));
-      });
+      getLimit(contract)
+        .then((res) => {
+          setLimit(res.toString());
+        })
+        .catch((error) => {
+          setErroMessage(JSON.stringify(error));
+        });
     } catch (error) {
       setErroMessage(error.message);
     }
@@ -23,7 +31,7 @@ function AddEventType() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Add Event Type</h2>
+        <h2>Get Limit</h2>
       </div>
       <div className="row">
         <input
@@ -34,15 +42,10 @@ function AddEventType() {
         />
       </div>
       <div className="row">
-        <input
-          type="number"
-          value={eventType}
-          placeholder="eventType (uint8)"
-          onChange={(e) => setEventType(e.target.value)}
-        />
+        <button onClick={handleGetLimit}>Get Limit</button>
       </div>
       <div className="row">
-        <button onClick={handleAddEventType}>Add Event Type</button>
+        <p>Limit: {limit}</p>
       </div>
       <div className="row">
         <p>
@@ -53,4 +56,4 @@ function AddEventType() {
   );
 }
 
-export default AddEventType;
+export default GetLimit;

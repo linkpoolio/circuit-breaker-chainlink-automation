@@ -1,23 +1,23 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getEvents } from "sdk/src/ReadFunctions/GetEvents";
+import { getStaleness } from "sdk/src/ReadFunctions/getStaleness";
 import "../../styles/main.css";
 
-function GetEvents() {
+function GetStaleness() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [events, setEvents] = useState("");
+  const [stalenessInterval, setStalenessInterval] = useState("");
 
-  async function handleGetEvents() {
-    setEvents("");
+  async function handleGetStalenessInterval() {
+    setStalenessInterval("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getEvents(contract)
+      getStaleness(contract)
         .then((res) => {
-          setEvents(res);
+          setStalenessInterval(res.toString());
         })
         .catch((error) => {
           setErroMessage(JSON.stringify(error));
@@ -30,7 +30,7 @@ function GetEvents() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Events</h2>
+        <h2>Get Staleness Interval</h2>
       </div>
       <div className="row">
         <input
@@ -41,10 +41,12 @@ function GetEvents() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetEvents}>Get Events</button>
+        <button onClick={handleGetStalenessInterval}>
+          Get Staleness Interval
+        </button>
       </div>
       <div className="row">
-        <p>Events: {events}</p>
+        <p>Interval: {stalenessInterval}</p>
       </div>
       <div className="row">
         <p>
@@ -55,4 +57,4 @@ function GetEvents() {
   );
 }
 
-export default GetEvents;
+export default GetStaleness;

@@ -1,23 +1,26 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getPaused } from "sdk/src/ReadFunctions/GetPaused";
+import { getVolatility } from "sdk/src/ReadFunctions/getVolatility";
 import "../../styles/main.css";
 
-function GetPaused() {
+function GetVolatility() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [isPaused, setIsPaused] = useState("");
+  const [volatilityPercentage, setVolatilityPercentage] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
 
-  async function handleGetPaused() {
-    setIsPaused("");
+  async function handleGetVolatility() {
+    setVolatilityPercentage("");
+    setCurrentPrice("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getPaused(contract)
+      getVolatility(contract)
         .then((res) => {
-          setIsPaused(String(res));
+          setVolatilityPercentage(res.volatilityPercentage.toString());
+          setCurrentPrice(res.currentPrice.toString());
         })
         .catch((error) => {
           setErroMessage(JSON.stringify(error));
@@ -27,12 +30,10 @@ function GetPaused() {
     }
   }
 
-  console.log(isPaused);
-
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Paused</h2>
+        <h2>Get Volatility</h2>
       </div>
       <div className="row">
         <input
@@ -43,18 +44,21 @@ function GetPaused() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetPaused}>Get Paused</button>
+        <button onClick={handleGetVolatility}>Get Volatility</button>
       </div>
       <div className="row">
-        <p>Is paused: {isPaused}</p>
+        <p>Current Price: {currentPrice}</p>
+      </div>
+      <div className="row">
+        <p>Volatility Percentage: {volatilityPercentage}</p>
       </div>
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>
+        </p>{" "}
       </div>
     </div>
   );
 }
 
-export default GetPaused;
+export default GetVolatility;

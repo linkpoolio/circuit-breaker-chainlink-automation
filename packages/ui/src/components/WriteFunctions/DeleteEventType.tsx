@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { deleteEventType } from "sdk/src/WriteFunctions/DeleteEventType";
+import { deleteEventType } from "sdk/src/WriteFunctions/deleteEventType";
 
 function DeleteEventType() {
   const [contractAddress, setContractAddress] = useState("");
@@ -45,9 +45,10 @@ function DeleteEventType() {
         <button onClick={handleDeleteEventType}>Delete Event Type</button>
       </div>
       <div className="row">
-      <p>
+        <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>      </div>
+        </p>{" "}
+      </div>
     </div>
   );
 }

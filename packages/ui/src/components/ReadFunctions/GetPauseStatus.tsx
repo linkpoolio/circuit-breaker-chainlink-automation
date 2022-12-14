@@ -1,29 +1,38 @@
 import React, { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { addEventType } from "sdk/src/WriteFunctions/addEventType";
+import { getPaused } from "../../../../sdk/src/ReadFunctions/getPaused";
+import "../../styles/main.css";
 
-function AddEventType() {
+function GetPauseStatus() {
   const [contractAddress, setContractAddress] = useState("");
-  const [eventType, setEventType] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleAddEventType() {
+  const [isPaused, setIsPaused] = useState("");
+
+  async function handleGetPaused() {
+    setIsPaused("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      addEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(JSON.stringify(error));
-      });
+      getPaused(contract)
+        .then((res) => {
+          setIsPaused(String(res));
+        })
+        .catch((error) => {
+          setErroMessage(JSON.stringify(error));
+        });
     } catch (error) {
       setErroMessage(error.message);
     }
   }
 
+  console.log(isPaused);
+
   return (
     <div className="container">
       <div className="row">
-        <h2>Add Event Type</h2>
+        <h2>Get Pause Status</h2>
       </div>
       <div className="row">
         <input
@@ -34,23 +43,18 @@ function AddEventType() {
         />
       </div>
       <div className="row">
-        <input
-          type="number"
-          value={eventType}
-          placeholder="eventType (uint8)"
-          onChange={(e) => setEventType(e.target.value)}
-        />
+        <button onClick={handleGetPaused}>Get Paused</button>
       </div>
       <div className="row">
-        <button onClick={handleAddEventType}>Add Event Type</button>
+        <p>Is paused: {isPaused}</p>
       </div>
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );
 }
 
-export default AddEventType;
+export default GetPauseStatus;
