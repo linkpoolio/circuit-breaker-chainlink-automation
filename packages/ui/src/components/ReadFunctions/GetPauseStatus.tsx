@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
 import { getPaused } from "../../../../sdk/src/ReadFunctions/getPaused";
@@ -20,7 +20,7 @@ function GetPauseStatus() {
           setIsPaused(String(res));
         })
         .catch((error) => {
-          setErroMessage(JSON.stringify(error));
+          setErroMessage(error.message);
         });
     } catch (error) {
       setErroMessage(error.message);

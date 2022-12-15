@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
@@ -21,7 +21,7 @@ function GetLimit() {
           setLimit(res.toString());
         })
         .catch((error) => {
-          setErroMessage(JSON.stringify(error));
+          setErroMessage(error.message);
         });
     } catch (error) {
       setErroMessage(error.message);
@@ -50,7 +50,7 @@ function GetLimit() {
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );

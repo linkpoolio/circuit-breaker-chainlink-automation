@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
 import { getVolatility } from "sdk/src/ReadFunctions/getVolatility";
@@ -23,7 +23,7 @@ function GetVolatility() {
           setCurrentPrice(res.currentPrice.toString());
         })
         .catch((error) => {
-          setErroMessage(JSON.stringify(error));
+          setErroMessage(error.message);
         });
     } catch (error) {
       setErroMessage(error.message);
@@ -55,7 +55,7 @@ function GetVolatility() {
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );

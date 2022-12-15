@@ -3,5 +3,13 @@ export const setVolatility = async (
   currentPrice: number,
   percentage: number
 ) => {
-  await contract.setVolatility(currentPrice, percentage);
+  try {
+    await contract.setVolatility(currentPrice, percentage);
+  } catch (error) {
+    throw new Error(
+      `Error setting the volatility currentPrice: ${currentPrice} and percentage ${percentage}. Reason: ${
+        error.message + JSON.stringify(error.data?.data?.stack)
+      }`
+    );
+  }
 };

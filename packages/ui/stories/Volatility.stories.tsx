@@ -1,4 +1,3 @@
-import React from "react";
 import { storiesOf } from "@storybook/react";
 import SetVolatility from "../src/components/WriteFunctions/SetVolatility";
 import GetVolatility from "../src/components/ReadFunctions/GetVolatility";

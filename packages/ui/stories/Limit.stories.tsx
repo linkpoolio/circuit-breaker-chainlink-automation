@@ -1,4 +1,3 @@
-import React from "react";
 import { storiesOf } from "@storybook/react";
 import SetLimit from "../src/components/WriteFunctions/SetLimit";
 import GetLimit from "../src/components/ReadFunctions/GetLimit";

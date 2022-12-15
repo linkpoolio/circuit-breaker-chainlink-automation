@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getStaleness } from "sdk/src/ReadFunctions/getStaleness";
-import "../../styles/main.css";
+import { unpauseCustomFunction } from "sdk/src/WriteFunctions/unpauseCustomFunction";
+import { pauseCustomFunction } from "sdk/src/WriteFunctions/pauseCustomFunction";
 
-function GetStaleness() {
+function SetPauseCustomFunction() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [stalenessInterval, setStalenessInterval] = useState("");
-
-  async function handleGetStalenessInterval() {
-    setStalenessInterval("");
+  async function handlePause() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getStaleness(contract)
-        .then((res) => {
-          setStalenessInterval(res.toString());
-        })
-        .catch((error) => {
-          setErroMessage(error.message);
-        });
+      pauseCustomFunction(contract).catch((error) => {
+        setErroMessage(error.message);
+      });
+    } catch (error) {
+      setErroMessage(error.message);
+    }
+  }
+
+  async function handleUnpause() {
+    setErroMessage("");
+    try {
+      const contract = getContract(contractAddress, CircuitBreaker);
+      unpauseCustomFunction(contract).catch((error) => {
+        setErroMessage(error.message);
+      });
     } catch (error) {
       setErroMessage(error.message);
     }
@@ -30,7 +35,7 @@ function GetStaleness() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Staleness Interval</h2>
+        <h2>Set Pause Custom Function</h2>
       </div>
       <div className="row">
         <input
@@ -41,12 +46,8 @@ function GetStaleness() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetStalenessInterval}>
-          Get Staleness Interval
-        </button>
-      </div>
-      <div className="row">
-        <p>Interval: {stalenessInterval}</p>
+        <button onClick={handlePause}>Pause</button>
+        <button onClick={handleUnpause}>Unpause</button>
       </div>
       <div className="row">
         <p>
@@ -57,4 +58,4 @@ function GetStaleness() {
   );
 }
 
-export default GetStaleness;
+export default SetPauseCustomFunction;

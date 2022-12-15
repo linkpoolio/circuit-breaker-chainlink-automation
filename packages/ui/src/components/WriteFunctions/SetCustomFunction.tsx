@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { setVolatility } from "sdk/src/WriteFunctions/setVolatility";
+import { setCustomFunction } from "sdk/src/WriteFunctions/setCustomFunction";
 
-function SetVolatility() {
+function SetCustomFunction() {
   const [contractAddress, setContractAddress] = useState("");
-  const [currentPrice, setCurrentPrice] = useState("");
-  const [percentage, setPercentage] = useState("");
+  const [externalContract, setExternalContract] = useState("");
+  const [functionSelector, setFunctionSelector] = useState("");
 
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleSetVolatility() {
+  async function handleSetCustomFunction() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      setVolatility(contract, Number(currentPrice), Number(percentage)).catch(
+      setCustomFunction(contract, externalContract, functionSelector).catch(
         (error) => {
           setErroMessage(error.message);
         }
@@ -27,7 +27,7 @@ function SetVolatility() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Volatility</h2>
+        <h2>Set Custom Function</h2>
       </div>
       <div className="row">
         <input
@@ -39,22 +39,22 @@ function SetVolatility() {
       </div>
       <div className="row">
         <input
-          type="number"
-          value={currentPrice}
-          placeholder="currentPrice (int256)"
-          onChange={(e) => setCurrentPrice(e.target.value)}
+          type="string"
+          value={externalContract}
+          placeholder="externalContract (address)"
+          onChange={(e) => setExternalContract(e.target.value)}
         />
       </div>
       <div className="row">
         <input
-          type="number"
-          value={percentage}
-          placeholder="percentage (int8)"
-          onChange={(e) => setPercentage(e.target.value)}
+          type="string"
+          value={functionSelector}
+          placeholder="functionSelector (bytes)"
+          onChange={(e) => setFunctionSelector(e.target.value)}
         />
       </div>
       <div className="row">
-        <button onClick={handleSetVolatility}>Set Volatility</button>
+        <button onClick={handleSetCustomFunction}>Set Custom Function</button>
       </div>
       <div className="row">
         <p>
@@ -65,4 +65,4 @@ function SetVolatility() {
   );
 }
 
-export default SetVolatility;
+export default SetCustomFunction;

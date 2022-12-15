@@ -1,23 +1,26 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getStaleness } from "sdk/src/ReadFunctions/getStaleness";
+import { getCustomFunction } from "sdk/src/ReadFunctions/getCustomFunction";
 import "../../styles/main.css";
 
-function GetStaleness() {
+function GetCustomFunction() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [stalenessInterval, setStalenessInterval] = useState("");
+  const [externalContract, setExternalContract] = useState("");
+  const [functionSelector, setFunctionSelector] = useState("");
 
-  async function handleGetStalenessInterval() {
-    setStalenessInterval("");
+  async function handleGetVolatility() {
+    setExternalContract("");
+    setFunctionSelector("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getStaleness(contract)
+      getCustomFunction(contract)
         .then((res) => {
-          setStalenessInterval(res.toString());
+          setExternalContract(res.externalContract.toString());
+          setFunctionSelector(res.functionSelector.toString());
         })
         .catch((error) => {
           setErroMessage(error.message);
@@ -30,7 +33,7 @@ function GetStaleness() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Staleness Interval</h2>
+        <h2>Get Custom Function</h2>
       </div>
       <div className="row">
         <input
@@ -41,12 +44,13 @@ function GetStaleness() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetStalenessInterval}>
-          Get Staleness Interval
-        </button>
+        <button onClick={handleGetVolatility}>Get Custom Function</button>
       </div>
       <div className="row">
-        <p>Interval: {stalenessInterval}</p>
+        <p>External Contract: {externalContract}</p>
+      </div>
+      <div className="row">
+        <p>Funciton Selector: {functionSelector}</p>
       </div>
       <div className="row">
         <p>
@@ -57,4 +61,4 @@ function GetStaleness() {
   );
 }
 
-export default GetStaleness;
+export default GetCustomFunction;

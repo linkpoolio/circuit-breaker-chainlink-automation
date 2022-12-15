@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
 import { unpause } from "sdk/src/WriteFunctions/unpause";
@@ -13,7 +13,7 @@ function SetPause() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       pause(contract).catch((error) => {
-        setErroMessage(JSON.stringify(error));
+        setErroMessage(error.message);
       });
     } catch (error) {
       setErroMessage(error.message);
@@ -25,7 +25,7 @@ function SetPause() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       unpause(contract).catch((error) => {
-        setErroMessage(JSON.stringify(error));
+        setErroMessage(error.message);
       });
     } catch (error) {
       setErroMessage(error.message);

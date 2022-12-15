@@ -1,4 +1,3 @@
-import React from "react";
 import { storiesOf } from "@storybook/react";
 import GetEventTypes from "../src/components/ReadFunctions/GetEventTypes";
 import AddEventType from "../src/components/WriteFunctions/AddEventType";

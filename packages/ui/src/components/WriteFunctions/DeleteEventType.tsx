@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
 import { deleteEventType } from "sdk/src/WriteFunctions/deleteEventType";
@@ -13,7 +13,7 @@ function DeleteEventType() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       deleteEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(JSON.stringify(error));
+        setErroMessage(error.message);
       });
     } catch (error) {
       setErroMessage(error.message + JSON.stringify(error.data.data));
@@ -47,7 +47,7 @@ function DeleteEventType() {
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );

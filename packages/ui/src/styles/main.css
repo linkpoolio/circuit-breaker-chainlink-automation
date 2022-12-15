@@ -46,7 +46,7 @@ input {
   border-radius: 5px;
   background-color: #f2f2f2;
   padding: 30px;
-  width: 25%;
+  width: 550px;
   display: flex;
   flex-direction: column;
   margin-right: 20px;
@@ -60,4 +60,9 @@ input {
 
 .error {
   color: red;
+}
+
+.code {
+  font-style: italic;
+  font-weight: bold;
 }

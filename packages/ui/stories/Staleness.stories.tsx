@@ -1,4 +1,3 @@
-import React from "react";
 import { storiesOf } from "@storybook/react";
 import SetStaleness from "../src/components/WriteFunctions/SetStaleness";
 import GetStaleness from "../src/components/ReadFunctions/GetStaleness";
