@@ -1,32 +1,30 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/unpause";
-import { pause } from "sdk/src/WriteFunctions/pause";
+import { getVolatility } from "sdk/src/ReadFunctions/getVolatility";
+import "../../styles/main.css";
 
-function SetPause() {
+function GetVolatility() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handlePause() {
-    setErroMessage("");
-    try {
-      const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
-    } catch (error) {
-      setErroMessage(error.message);
-    }
-  }
+  const [volatilityPercentage, setVolatilityPercentage] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
 
-  async function handleUnpause() {
+  async function handleGetVolatility() {
+    setVolatilityPercentage("");
+    setCurrentPrice("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
+      getVolatility(contract)
+        .then((res) => {
+          setVolatilityPercentage(res.volatilityPercentage.toString());
+          setCurrentPrice(res.currentPrice.toString());
+        })
+        .catch((error) => {
+          setErroMessage(error.message);
+        });
     } catch (error) {
       setErroMessage(error.message);
     }
@@ -35,7 +33,7 @@ function SetPause() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Pause</h2>
+        <h2>Get Volatility</h2>
       </div>
       <div className="row">
         <input
@@ -46,8 +44,13 @@ function SetPause() {
         />
       </div>
       <div className="row">
-        <button onClick={handlePause}>Pause</button>
-        <button onClick={handleUnpause}>Unpause</button>
+        <button onClick={handleGetVolatility}>Get Volatility</button>
+      </div>
+      <div className="row">
+        <p>Current Price: {currentPrice}</p>
+      </div>
+      <div className="row">
+        <p>Volatility Percentage: {volatilityPercentage}</p>
       </div>
       <div className="row">
         <p>
@@ -58,4 +61,4 @@ function SetPause() {
   );
 }
 
-export default SetPause;
+export default GetVolatility;

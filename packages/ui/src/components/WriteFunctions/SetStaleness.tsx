@@ -1,30 +1,18 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/unpause";
-import { pause } from "sdk/src/WriteFunctions/pause";
+import { setStaleness } from "sdk/src/WriteFunctions/setStaleness";
 
-function SetPause() {
+function SetStaleness() {
   const [contractAddress, setContractAddress] = useState("");
+  const [interval, setInterval] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handlePause() {
+  async function handleSetStaleness() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
-    } catch (error) {
-      setErroMessage(error.message);
-    }
-  }
-
-  async function handleUnpause() {
-    setErroMessage("");
-    try {
-      const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
+      setStaleness(contract, Number(interval)).catch((error) => {
         setErroMessage(error.message);
       });
     } catch (error) {
@@ -35,7 +23,7 @@ function SetPause() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Pause</h2>
+        <h2>Set Staleness</h2>
       </div>
       <div className="row">
         <input
@@ -46,8 +34,15 @@ function SetPause() {
         />
       </div>
       <div className="row">
-        <button onClick={handlePause}>Pause</button>
-        <button onClick={handleUnpause}>Unpause</button>
+        <input
+          type="number"
+          value={interval}
+          placeholder="interval (uint256)"
+          onChange={(e) => setInterval(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <button onClick={handleSetStaleness}>Set Staleness</button>
       </div>
       <div className="row">
         <p>
@@ -58,4 +53,4 @@ function SetPause() {
   );
 }
 
-export default SetPause;
+export default SetStaleness;

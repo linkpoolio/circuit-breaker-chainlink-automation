@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/unpause";
-import { pause } from "sdk/src/WriteFunctions/pause";
+import { unpauseCustomFunction } from "sdk/src/WriteFunctions/unpauseCustomFunction";
+import { pauseCustomFunction } from "sdk/src/WriteFunctions/pauseCustomFunction";
 
-function SetPause() {
+function SetPauseCustomFunction() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
@@ -12,7 +12,7 @@ function SetPause() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
+      pauseCustomFunction(contract).catch((error) => {
         setErroMessage(error.message);
       });
     } catch (error) {
@@ -24,7 +24,7 @@ function SetPause() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
+      unpauseCustomFunction(contract).catch((error) => {
         setErroMessage(error.message);
       });
     } catch (error) {
@@ -35,7 +35,7 @@ function SetPause() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Pause</h2>
+        <h2>Set Pause Custom Function</h2>
       </div>
       <div className="row">
         <input
@@ -58,4 +58,4 @@ function SetPause() {
   );
 }
 
-export default SetPause;
+export default SetPauseCustomFunction;

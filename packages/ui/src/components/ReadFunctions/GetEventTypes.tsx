@@ -1,32 +1,27 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/unpause";
-import { pause } from "sdk/src/WriteFunctions/pause";
+import { getEvents } from "sdk/src/ReadFunctions/getEvents";
+import "../../styles/main.css";
 
-function SetPause() {
+function GetEventTypes() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handlePause() {
-    setErroMessage("");
-    try {
-      const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
-    } catch (error) {
-      setErroMessage(error.message);
-    }
-  }
+  const [events, setEvents] = useState("");
 
-  async function handleUnpause() {
+  async function handleGetEvents() {
+    setEvents("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
+      getEvents(contract)
+        .then((res) => {
+          setEvents(res);
+        })
+        .catch((error) => {
+          setErroMessage(error.message);
+        });
     } catch (error) {
       setErroMessage(error.message);
     }
@@ -35,7 +30,7 @@ function SetPause() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Pause</h2>
+        <h2>Get Event Types</h2>
       </div>
       <div className="row">
         <input
@@ -46,8 +41,10 @@ function SetPause() {
         />
       </div>
       <div className="row">
-        <button onClick={handlePause}>Pause</button>
-        <button onClick={handleUnpause}>Unpause</button>
+        <button onClick={handleGetEvents}>Get Events</button>
+      </div>
+      <div className="row">
+        <p>Events: {events}</p>
       </div>
       <div className="row">
         <p>
@@ -58,4 +55,4 @@ function SetPause() {
   );
 }
 
-export default SetPause;
+export default GetEventTypes;

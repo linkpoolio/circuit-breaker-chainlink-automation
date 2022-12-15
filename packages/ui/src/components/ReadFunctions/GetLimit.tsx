@@ -1,32 +1,28 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
-import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { unpause } from "sdk/src/WriteFunctions/unpause";
-import { pause } from "sdk/src/WriteFunctions/pause";
 
-function SetPause() {
+import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
+import { getLimit } from "sdk/src/ReadFunctions/getLimit";
+import "../../styles/main.css";
+
+function GetLimit() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handlePause() {
-    setErroMessage("");
-    try {
-      const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
-    } catch (error) {
-      setErroMessage(error.message);
-    }
-  }
+  const [limit, setLimit] = useState("");
 
-  async function handleUnpause() {
+  async function handleGetLimit() {
+    setLimit("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
-        setErroMessage(error.message);
-      });
+      getLimit(contract)
+        .then((res) => {
+          setLimit(res.toString());
+        })
+        .catch((error) => {
+          setErroMessage(error.message);
+        });
     } catch (error) {
       setErroMessage(error.message);
     }
@@ -35,7 +31,7 @@ function SetPause() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Set Pause</h2>
+        <h2>Get Limit</h2>
       </div>
       <div className="row">
         <input
@@ -46,8 +42,10 @@ function SetPause() {
         />
       </div>
       <div className="row">
-        <button onClick={handlePause}>Pause</button>
-        <button onClick={handleUnpause}>Unpause</button>
+        <button onClick={handleGetLimit}>Get Limit</button>
+      </div>
+      <div className="row">
+        <p>Limit: {limit}</p>
       </div>
       <div className="row">
         <p>
@@ -58,4 +56,4 @@ function SetPause() {
   );
 }
 
-export default SetPause;
+export default GetLimit;

@@ -1,26 +1,29 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getEvents } from "sdk/src/ReadFunctions/GetEvents";
+import { getCustomFunction } from "sdk/src/ReadFunctions/getCustomFunction";
 import "../../styles/main.css";
 
-function GetEvents() {
+function GetCustomFunction() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [events, setEvents] = useState("");
+  const [externalContract, setExternalContract] = useState("");
+  const [functionSelector, setFunctionSelector] = useState("");
 
-  async function handleGetEvents() {
-    setEvents("");
+  async function handleGetVolatility() {
+    setExternalContract("");
+    setFunctionSelector("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getEvents(contract)
+      getCustomFunction(contract)
         .then((res) => {
-          setEvents(res);
+          setExternalContract(res.externalContract.toString());
+          setFunctionSelector(res.functionSelector.toString());
         })
         .catch((error) => {
-          setErroMessage(JSON.stringify(error));
+          setErroMessage(error.message);
         });
     } catch (error) {
       setErroMessage(error.message);
@@ -30,7 +33,7 @@ function GetEvents() {
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Events</h2>
+        <h2>Get Custom Function</h2>
       </div>
       <div className="row">
         <input
@@ -41,18 +44,21 @@ function GetEvents() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetEvents}>Get Events</button>
+        <button onClick={handleGetVolatility}>Get Custom Function</button>
       </div>
       <div className="row">
-        <p>Events: {events}</p>
+        <p>External Contract: {externalContract}</p>
+      </div>
+      <div className="row">
+        <p>Funciton Selector: {functionSelector}</p>
       </div>
       <div className="row">
         <p>
           Error: <span className="error">{errorMessage}</span>
-        </p>{" "}
+        </p>
       </div>
     </div>
   );
 }
 
-export default GetEvents;
+export default GetCustomFunction;

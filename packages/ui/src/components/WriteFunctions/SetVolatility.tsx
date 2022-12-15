@@ -1,29 +1,33 @@
 import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { deleteEventType } from "sdk/src/WriteFunctions/deleteEventType";
+import { setVolatility } from "sdk/src/WriteFunctions/setVolatility";
 
-function DeleteEventType() {
+function SetVolatility() {
   const [contractAddress, setContractAddress] = useState("");
-  const [eventType, setEventType] = useState("");
+  const [currentPrice, setCurrentPrice] = useState("");
+  const [percentage, setPercentage] = useState("");
+
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleDeleteEventType() {
+  async function handleSetVolatility() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      deleteEventType(contract, Number(eventType)).catch((error) => {
-        setErroMessage(error.message);
-      });
+      setVolatility(contract, Number(currentPrice), Number(percentage)).catch(
+        (error) => {
+          setErroMessage(error.message);
+        }
+      );
     } catch (error) {
-      setErroMessage(error.message + JSON.stringify(error.data.data));
+      setErroMessage(error.message);
     }
   }
 
   return (
     <div className="container">
       <div className="row">
-        <h2>Delete Event Type</h2>
+        <h2>Set Volatility</h2>
       </div>
       <div className="row">
         <input
@@ -36,13 +40,21 @@ function DeleteEventType() {
       <div className="row">
         <input
           type="number"
-          value={eventType}
-          placeholder="eventType (uint8)"
-          onChange={(e) => setEventType(e.target.value)}
+          value={currentPrice}
+          placeholder="currentPrice (int256)"
+          onChange={(e) => setCurrentPrice(e.target.value)}
         />
       </div>
       <div className="row">
-        <button onClick={handleDeleteEventType}>Delete Event Type</button>
+        <input
+          type="number"
+          value={percentage}
+          placeholder="percentage (int8)"
+          onChange={(e) => setPercentage(e.target.value)}
+        />
+      </div>
+      <div className="row">
+        <button onClick={handleSetVolatility}>Set Volatility</button>
       </div>
       <div className="row">
         <p>
@@ -53,4 +65,4 @@ function DeleteEventType() {
   );
 }
 
-export default DeleteEventType;
+export default SetVolatility;

@@ -1,38 +1,36 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { getContract } from "sdk/src/lib/utils";
 import CircuitBreaker from "sdk/src/abi/contracts/CircuitBreaker.sol/CircuitBreaker.json";
-import { getPaused } from "sdk/src/ReadFunctions/GetPaused";
+import { getStaleness } from "sdk/src/ReadFunctions/getStaleness";
 import "../../styles/main.css";
 
-function GetPaused() {
+function GetStaleness() {
   const [contractAddress, setContractAddress] = useState("");
   const [errorMessage, setErroMessage] = useState("");
 
-  const [isPaused, setIsPaused] = useState("");
+  const [stalenessInterval, setStalenessInterval] = useState("");
 
-  async function handleGetPaused() {
-    setIsPaused("");
+  async function handleGetStalenessInterval() {
+    setStalenessInterval("");
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      getPaused(contract)
+      getStaleness(contract)
         .then((res) => {
-          setIsPaused(String(res));
+          setStalenessInterval(res.toString());
         })
         .catch((error) => {
-          setErroMessage(JSON.stringify(error));
+          setErroMessage(error.message);
         });
     } catch (error) {
       setErroMessage(error.message);
     }
   }
 
-  console.log(isPaused);
-
   return (
     <div className="container">
       <div className="row">
-        <h2>Get Paused</h2>
+        <h2>Get Staleness Interval</h2>
       </div>
       <div className="row">
         <input
@@ -43,10 +41,12 @@ function GetPaused() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetPaused}>Get Paused</button>
+        <button onClick={handleGetStalenessInterval}>
+          Get Staleness Interval
+        </button>
       </div>
       <div className="row">
-        <p>Is paused: {isPaused}</p>
+        <p>Interval: {stalenessInterval}</p>
       </div>
       <div className="row">
         <p>
@@ -57,4 +57,4 @@ function GetPaused() {
   );
 }
 
-export default GetPaused;
+export default GetStaleness;
