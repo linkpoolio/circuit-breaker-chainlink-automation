@@ -3,7 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config();
 require("hardhat-abi-exporter");
 
-const MAINNET_RPC_URL = process.env.RPC_URL as string;
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL as string;
 const GOERLI_RPC_URL = process.env.RPC_URL as string;
 const GANACHE_RPC_URL = process.env.RPC_URL as string;
 
@@ -14,7 +14,7 @@ interface Config extends HardhatUserConfig {
     format: string;
   };
 }
-
+console.log("MAINNET_RPC_URL", MAINNET_RPC_URL);
 const config: Config = {
   solidity: "0.8.17",
   defaultNetwork: "hardhat",
@@ -24,14 +24,14 @@ const config: Config = {
     format: "json",
   },
   networks: {
-    ganache: {
-      url: GANACHE_RPC_URL,
-    },
+    // ganache: {
+    //   url: GANACHE_RPC_URL,
+    // },
     hardhat: {
       // // comment out forking to run tests on a local chain
-      // forking: {
-      //   url: MAINNET_RPC_URL,
-      // },
+      forking: {
+        url: MAINNET_RPC_URL,
+      },
     },
   },
 };
