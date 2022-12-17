@@ -21,8 +21,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
     enum EventType {
         Limit,
         Staleness,
-        Volatility,
-        None
+        Volatility
     }
 
     //------------------------------ EVENTS ----------------------------------
