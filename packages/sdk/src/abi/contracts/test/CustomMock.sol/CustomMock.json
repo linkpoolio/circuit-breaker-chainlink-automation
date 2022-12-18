@@ -6,19 +6,6 @@
   },
   {
     "inputs": [],
-    "name": "name",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "num",
     "outputs": [
       {
@@ -34,7 +21,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_num1",
+        "name": "num1",
         "type": "uint256"
       }
     ],
