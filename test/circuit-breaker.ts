@@ -59,19 +59,19 @@ describe("Circuit Breaker", function () {
       expect(e.length).to.equal(0);
     });
     it("should add event type", async function () {
-      await circuitBreaker.addEventType(2);
+      await circuitBreaker.addEventType([2]);
       const e = await circuitBreaker.getEvents();
       expect(e[0]).to.equal(EventType.Volatility);
     });
     it("should delete event", async function () {
-      await circuitBreaker.deleteEventType(2);
+      await circuitBreaker.deleteEventType([2]);
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
     });
     it("Should not add event type if already exists", async function () {
-      await circuitBreaker.addEventType(2);
-      expect(circuitBreaker.addEventType(2)).to.be.revertedWith(
-        "Event already added."
+      await circuitBreaker.addEventType([2]);
+      expect(circuitBreaker.addEventType([2])).to.be.revertedWith(
+        "Event type already configured"
       );
     });
   });
@@ -94,7 +94,7 @@ describe("Circuit Breaker", function () {
       assert(tx);
     });
     it("emits correct event on performUpkeep", async () => {
-      await circuitBreaker.addEventType(0);
+      await circuitBreaker.addEventType([0]);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
         "Limit"
@@ -104,7 +104,7 @@ describe("Circuit Breaker", function () {
 
   describe("calculateChange", function () {
     it("should run calculateChange on volatility and perform upkeep because of deviation", async () => {
-      await circuitBreaker.addEventType(2); // Volatility
+      await circuitBreaker.addEventType([2]); // Volatility
 
       const price = 10;
       const percentage = 25;
@@ -148,7 +148,7 @@ describe("Circuit Breaker", function () {
         customMock.address,
         "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
       );
-      await circuitBreaker.addEventType(0);
+      await circuitBreaker.addEventType([0]);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
         "Limit"

@@ -3,17 +3,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_feed",
+        "name": "feed",
         "type": "address"
       },
       {
         "internalType": "uint8[]",
-        "name": "_eventTypes",
+        "name": "eventTypes",
         "type": "uint8[]"
       },
       {
         "internalType": "address",
-        "name": "_keeperRegistryAddress",
+        "name": "keeperAddress",
         "type": "address"
       }
     ],
@@ -24,6 +24,19 @@
     "inputs": [],
     "name": "OnlyKeeperRegistry",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "enum CircuitBreaker.EventType[]",
+        "name": "events",
+        "type": "uint8[]"
+      }
+    ],
+    "name": "EventsTriggered",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -62,6 +75,25 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "int256",
+        "name": "old",
+        "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "int256",
+        "name": "updated",
+        "type": "int256"
+      }
+    ],
+    "name": "LimitEventUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -81,6 +113,25 @@
       }
     ],
     "name": "Staleness",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "old",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "updated",
+        "type": "uint256"
+      }
+    ],
+    "name": "StalenessEventUpdated",
     "type": "event"
   },
   {
@@ -122,11 +173,42 @@
     "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "_eventType",
-        "type": "uint8"
+        "indexed": false,
+        "internalType": "int256",
+        "name": "oldPrice",
+        "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "int256",
+        "name": "updatedPrice",
+        "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "int8",
+        "name": "oldPercentage",
+        "type": "int8"
+      },
+      {
+        "indexed": false,
+        "internalType": "int8",
+        "name": "updatedPercentage",
+        "type": "int8"
+      }
+    ],
+    "name": "VolatilityEventUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8[]",
+        "name": "eventTypes",
+        "type": "uint8[]"
       }
     ],
     "name": "addEventType",
@@ -155,7 +237,7 @@
         "type": "bytes"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -172,6 +254,25 @@
         "internalType": "enum CircuitBreaker.EventType",
         "name": "",
         "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum CircuitBreaker.EventType",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "name": "currentEventsMapping",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -200,9 +301,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "_eventType",
-        "type": "uint8"
+        "internalType": "uint8[]",
+        "name": "eventTypes",
+        "type": "uint8[]"
       }
     ],
     "name": "deleteEventType",
@@ -371,12 +472,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_externalContract",
+        "name": "externalContractAddress",
         "type": "address"
       },
       {
         "internalType": "bytes",
-        "name": "_functionSelector",
+        "name": "functionSelectorHex",
         "type": "bytes"
       }
     ],
@@ -389,7 +490,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_keeperRegistryAddress",
+        "name": "newKeeperRegistryAddress",
         "type": "address"
       }
     ],
@@ -402,7 +503,7 @@
     "inputs": [
       {
         "internalType": "int256",
-        "name": "_limit",
+        "name": "newLimit",
         "type": "int256"
       }
     ],
@@ -415,7 +516,7 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_interval",
+        "name": "newInterval",
         "type": "uint256"
       }
     ],
@@ -428,12 +529,12 @@
     "inputs": [
       {
         "internalType": "int256",
-        "name": "_currentPrice",
+        "name": "newPrice",
         "type": "int256"
       },
       {
         "internalType": "int8",
-        "name": "_percentage",
+        "name": "newPercentage",
         "type": "int8"
       }
     ],
@@ -460,7 +561,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "_feed",
+        "name": "feed",
         "type": "address"
       }
     ],
