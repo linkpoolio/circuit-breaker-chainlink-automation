@@ -19,14 +19,13 @@ function GetPauseStatus() {
         .then((res) => {
           setIsPaused(String(res));
         })
-        .catch((error) => {
+        .catch((error: any) => {
           setErroMessage(error.message);
         });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }
-
 
   return (
     <div className="container">

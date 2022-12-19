@@ -15,11 +15,11 @@ function SetCustomFunction() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       setCustomFunction(contract, externalContract, functionSelector).catch(
-        (error) => {
+        (error: any) => {
           setErroMessage(error.message);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

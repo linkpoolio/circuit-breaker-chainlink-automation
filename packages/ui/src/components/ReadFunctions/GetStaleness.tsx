@@ -19,10 +19,10 @@ function GetStaleness() {
         .then((res) => {
           setStalenessInterval(res.toString());
         })
-        .catch((error) => {
+        .catch((error: any) => {
           setErroMessage(error.message);
         });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

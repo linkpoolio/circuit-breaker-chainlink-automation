@@ -12,10 +12,10 @@ function SetLimit() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      setLimit(contract, Number(limitInput)).catch((error) => {
+      setLimit(contract, Number(limitInput)).catch((error: any) => {
         setErroMessage(error.message);
       });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

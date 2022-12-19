@@ -1,12 +1,12 @@
 import { storiesOf } from "@storybook/react";
 import GetEventTypes from "../src/components/ReadFunctions/GetEventTypes";
-import AddEventType from "../src/components/WriteFunctions/AddEventType";
-import DeleteEventType from "../src/components/WriteFunctions/DeleteEventType";
+import AddEventTypes from "../src/components/WriteFunctions/AddEventTypes";
+import DeleteEventTypes from "../src/components/WriteFunctions/DeleteEventTypes";
 
 storiesOf("Event Types", module).add("Add, delete or get event types.", () => (
   <div style={{ display: "flex", flexWrap: "wrap" }}>
-    <AddEventType />
-    <DeleteEventType />
+    <AddEventTypes />
+    <DeleteEventTypes />
     <GetEventTypes />
   </div>
 ));

@@ -16,7 +16,7 @@ function EncodeFunctionSelector() {
       setFunctionSelector(
         encodeFunctionSelector(functionName, paramTypes, paramValues)
       );
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }
