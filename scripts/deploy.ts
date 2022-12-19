@@ -12,7 +12,6 @@ async function main() {
   console.log(`Circuit Breaker deployed to ${cb.address}`);
 }
 
-main().catch((error) => {
-  console.error(error);
+main().catch((error: any) => {
   process.exitCode = 1;
 });

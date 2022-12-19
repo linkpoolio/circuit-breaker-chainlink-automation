@@ -12,10 +12,10 @@ function SetPauseCustomFunction() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      pauseCustomFunction(contract).catch((error) => {
+      pauseCustomFunction(contract).catch((error: any) => {
         setErroMessage(error.message);
       });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }
@@ -24,10 +24,10 @@ function SetPauseCustomFunction() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpauseCustomFunction(contract).catch((error) => {
+      unpauseCustomFunction(contract).catch((error: any) => {
         setErroMessage(error.message);
       });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

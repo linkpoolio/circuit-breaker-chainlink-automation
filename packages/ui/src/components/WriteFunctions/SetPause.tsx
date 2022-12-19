@@ -12,10 +12,10 @@ function SetPause() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      pause(contract).catch((error) => {
+      pause(contract).catch((error: any) => {
         setErroMessage(error.message);
       });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }
@@ -24,10 +24,10 @@ function SetPause() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      unpause(contract).catch((error) => {
+      unpause(contract).catch((error: any) => {
         setErroMessage(error.message);
       });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

@@ -6,7 +6,7 @@ export const getEvents = async (contract: any): Promise<string> => {
     return eventTypes
       .map((eventType: EventType) => EventType[eventType])
       .join(", ");
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Error getting event types. Reason: ${error.message}`);
   }
 };

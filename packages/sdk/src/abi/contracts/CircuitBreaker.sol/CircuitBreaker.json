@@ -211,7 +211,7 @@
         "type": "uint8[]"
       }
     ],
-    "name": "addEventType",
+    "name": "addEventTypes",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -306,7 +306,7 @@
         "type": "uint8[]"
       }
     ],
-    "name": "deleteEventType",
+    "name": "deleteEventTypes",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { encodeFunctionSelector } from "../../../src/lib/utils";
+import { encodeFunctionSelector } from "../src/lib/utils";
 
 describe("encodeFunctionSelector", () => {
   it("should return the expected function selector given the input parameters", () => {

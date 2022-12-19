@@ -13,7 +13,7 @@ export const getContract = (contractAddress: string, contractAbi: any) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum as any);
     const signer = provider.getSigner();
     return new ethers.Contract(contractAddress, contractAbi, signer);
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Error initiating the contract. Reason: ${error.message}`);
   }
 };
@@ -21,7 +21,7 @@ export const getContract = (contractAddress: string, contractAbi: any) => {
 export const parseParamTypes = (paramTypes: string) => {
   try {
     return paramTypes === "" ? [] : JSON.parse(paramTypes);
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
       `Error parsing the parameter types: ${paramTypes}. Reason: ${error.message} `
     );
@@ -31,7 +31,7 @@ export const parseParamTypes = (paramTypes: string) => {
 export const parseParamValues = (paramValues: string) => {
   try {
     return paramValues === "" ? [] : JSON.parse(paramValues);
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
       `Error parsing the parameter values: ${paramValues}. Reason: ${error.message} `
     );
@@ -71,7 +71,7 @@ export const encodeFunctionSelector = (
       parseParamValues(paramValues)
     );
     return functionSelector;
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(
       `Error getting the function selector. Reason: ${error.message}`
     );

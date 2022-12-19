@@ -15,11 +15,11 @@ function SetVolatility() {
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
       setVolatility(contract, Number(currentPrice), Number(percentage)).catch(
-        (error) => {
+        (error: any) => {
           setErroMessage(error.message);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

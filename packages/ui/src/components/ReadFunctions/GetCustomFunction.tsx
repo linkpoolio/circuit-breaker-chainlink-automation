@@ -22,10 +22,10 @@ function GetCustomFunction() {
           setExternalContract(res.externalContract.toString());
           setFunctionSelector(res.functionSelector.toString());
         })
-        .catch((error) => {
+        .catch((error: any) => {
           setErroMessage(error.message);
         });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }

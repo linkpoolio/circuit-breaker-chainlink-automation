@@ -92,7 +92,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
      * @notice Adds an event type to the list of configured events.
      * @param eventTypes The event type to add based on the EventType enum.
      */
-    function addEventType(uint8[] memory eventTypes) external onlyOwner {
+    function addEventTypes(uint8[] memory eventTypes) external onlyOwner {
         for (uint256 i = 0; i < eventTypes.length; i++) {
             require(eventTypes[i] < 3, "Not a valid event type");
             require(
@@ -108,7 +108,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
      * @notice Deletes an event type from the list of configured events.
      * @param eventTypes The event type to delete based on the EventType enum.
      */
-    function deleteEventType(uint8[] memory eventTypes) external onlyOwner {
+    function deleteEventTypes(uint8[] memory eventTypes) external onlyOwner {
         for (uint256 i = 0; i < configuredEvents.length; i++) {
             if (configuredEvents[i] == EventType(eventTypes[i])) {
                 configuredEvents[i] = configuredEvents[

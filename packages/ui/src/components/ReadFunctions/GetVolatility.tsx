@@ -22,10 +22,10 @@ function GetVolatility() {
           setVolatilityPercentage(res.volatilityPercentage.toString());
           setCurrentPrice(res.currentPrice.toString());
         })
-        .catch((error) => {
+        .catch((error: any) => {
           setErroMessage(error.message);
         });
-    } catch (error) {
+    } catch (error: any) {
       setErroMessage(error.message);
     }
   }
