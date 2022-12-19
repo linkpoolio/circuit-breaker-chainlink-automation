@@ -2,7 +2,7 @@
 
 ## I. About
 
-Lorem ipsum
+The Circuit Breaker contract is a highly configurable proof of concept that can be used with any OCR price feed. It is capable of emitting events or calling custom functions based on predefined conditions, and it comes with an interactive UI that allows users to easily configure and manage the contract.
 
 ## II. Pre-requisites
 
@@ -59,7 +59,6 @@ $ pnpm run storybook
 ### 2. View app
 
 - Open browser at [localhost:9009](localhost:9009)
-Deploy Contracts
 
 ## V. Testing
 

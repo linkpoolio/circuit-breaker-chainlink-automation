@@ -47,7 +47,7 @@ export const parseName = (name: string) => {
   );
 };
 
-export const getFunctionSelector = (
+export const encodeFunctionSelector = (
   name: string,
   paramTypes: string,
   paramValues: string

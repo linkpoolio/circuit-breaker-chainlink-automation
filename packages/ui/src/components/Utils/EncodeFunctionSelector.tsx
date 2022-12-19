@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getFunctionSelector } from "sdk/src/lib/utils";
+import { encodeFunctionSelector } from "sdk/src/lib/utils";
 
 function EncodeFunctionSelector() {
   const [functionName, setFunctionName] = useState("");
@@ -9,20 +9,17 @@ function EncodeFunctionSelector() {
 
   const [errorMessage, setErroMessage] = useState("");
 
-  async function handleGetFunctionSelector() {
+  async function handleEncodeFunctionSelector() {
     setErroMessage("");
     setFunctionSelector("");
     try {
       setFunctionSelector(
-        getFunctionSelector(functionName, paramTypes, paramValues)
+        encodeFunctionSelector(functionName, paramTypes, paramValues)
       );
     } catch (error) {
-      console.log(error);
       setErroMessage(error.message);
     }
   }
-
-  console.log(paramTypes);
 
   return (
     <div className="container">
@@ -67,7 +64,7 @@ function EncodeFunctionSelector() {
         />
       </div>
       <div className="row">
-        <button onClick={handleGetFunctionSelector}>
+        <button onClick={handleEncodeFunctionSelector}>
           Get Function Selector
         </button>
       </div>
