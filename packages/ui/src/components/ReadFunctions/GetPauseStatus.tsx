@@ -27,7 +27,6 @@ function GetPauseStatus() {
     }
   }
 
-  console.log(isPaused);
 
   return (
     <div className="container">

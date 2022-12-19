@@ -1,7 +1,9 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import "hardhat-abi-exporter";
+
+
 require("dotenv").config();
-require("hardhat-abi-exporter");
 
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL as string;
 const GOERLI_RPC_URL = process.env.RPC_URL as string;
