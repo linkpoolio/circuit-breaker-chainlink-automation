@@ -14,7 +14,6 @@ interface Config extends HardhatUserConfig {
     format: string;
   };
 }
-console.log("MAINNET_RPC_URL", MAINNET_RPC_URL);
 const config: Config = {
   solidity: "0.8.17",
   defaultNetwork: "hardhat",
