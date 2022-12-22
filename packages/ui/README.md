@@ -3,8 +3,7 @@
 Run Storybook
 
 ```bash
-pnpm run storybook
+pnpm storybook
 ```
 
 Deploy contract on Ganache to test components.
-
