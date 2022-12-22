@@ -12,7 +12,7 @@ function AddEventTypes() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      addEventTypes(contract, JSON.parse(eventTypes)).catch((error: any) => {
+      addEventTypes(contract, eventTypes).catch((error: any) => {
         setErroMessage(error.message);
       });
     } catch (error: any) {

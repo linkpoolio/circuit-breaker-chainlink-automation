@@ -12,7 +12,7 @@ function SetStaleness() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      setStaleness(contract, Number(interval)).catch((error: any) => {
+      setStaleness(contract, interval).catch((error: any) => {
         setErroMessage(error.message);
       });
     } catch (error: any) {

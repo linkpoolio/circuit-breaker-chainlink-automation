@@ -12,7 +12,7 @@ function DeleteEventTypes() {
     setErroMessage("");
     try {
       const contract = getContract(contractAddress, CircuitBreaker);
-      deleteEventTypes(contract, JSON.parse(eventTypes)).catch((error: any) => {
+      deleteEventTypes(contract, eventTypes).catch((error: any) => {
         setErroMessage(error.message);
       });
     } catch (error: any) {
