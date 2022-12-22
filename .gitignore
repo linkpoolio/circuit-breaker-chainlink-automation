@@ -6,8 +6,10 @@ typechain
 typechain-types
 .envrc
 .vscode
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 #Hardhat files
 cache
 artifacts
-

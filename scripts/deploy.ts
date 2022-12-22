@@ -1,11 +1,21 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
+import { deploy } from "../test/utils/helpers";
+import { networkConfig } from "../network.config";
 
 async function main() {
-  const feed = "0xA39434A63A52E749F02807ae27335515BA4b07F7";
-  const keeperRegistryAddress = "0xf5de760f2e916647fd766B4AD9E85ff943cE3A2b";
-  const events = [0];
-  const CB = await ethers.getContractFactory("CircuitBreaker");
-  const cb = await CB.deploy(feed, events, keeperRegistryAddress);
+  const chainId =
+    network.config.chainId != undefined ? network.config.chainId : 31337;
+  const networkName = {
+    name: networkConfig[chainId].name,
+    events: networkConfig[chainId].events,
+    feed: networkConfig[chainId].feed,
+    keepersRegistry: networkConfig[chainId].keepersRegistry,
+  };
+  const cb = await deploy("CircuitBreaker", [
+    networkName.feed,
+    networkName.events,
+    networkName.keepersRegistry,
+  ]);
 
   await cb.deployed();
 
