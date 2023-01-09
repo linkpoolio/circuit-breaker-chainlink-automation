@@ -1,4 +1,7 @@
-export const getPaused = async (contract: any): Promise<boolean> => {
+
+export const getPaused = async (
+  contract: any
+): Promise<boolean> => {
   try {
     const isPaused = await contract.isPaused();
     return isPaused;

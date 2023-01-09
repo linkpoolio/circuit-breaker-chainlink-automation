@@ -1,4 +1,4 @@
-const parseCurrentPrice = (currentPrice: string): number => {
+export const parseCurrentPrice = (currentPrice: string): number => {
   try {
     return parseInt(currentPrice);
   } catch (error: any) {
@@ -10,7 +10,7 @@ const parseCurrentPrice = (currentPrice: string): number => {
   }
 };
 
-const parsePercentage = (percentage: string): number => {
+export const parsePercentage = (percentage: string): number => {
   try {
     return parseInt(percentage);
   } catch (error: any) {

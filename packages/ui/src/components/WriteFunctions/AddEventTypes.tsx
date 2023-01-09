@@ -35,7 +35,7 @@ function AddEventTypes() {
       </div>
       <div className="row">
         <input
-          type="number"
+          type="string"
           value={eventTypes}
           placeholder="eventTypes (uint8[])"
           onChange={(e) => setEventTypes(e.target.value)}

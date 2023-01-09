@@ -1,4 +1,4 @@
-const parseEventTypes = (eventTypes: string): number[] => {
+export const parseEventTypes = (eventTypes: string): number[] => {
   try {
     return JSON.parse(eventTypes);
   } catch (error: any) {

@@ -1,4 +1,7 @@
-export const getStaleness = async (contract: any): Promise<number> => {
+
+export const getStaleness = async (
+  contract: any
+): Promise<number> => {
   try {
     const interval = await contract.interval();
     return interval;

@@ -1,11 +1,13 @@
-export const getCustomFunction = async (contract: any) => {
+export const getExternalContractAndFunctionSelector = async (
+  contract: any
+): Promise<{ contractAddress: string; functionSignature: string }> => {
   try {
-    const externalContract = await contract.externalContract();
-    const functionSelector = await contract.functionSelector();
-    return { externalContract, functionSelector };
+    const contractAddress = await contract.getExternalContract();
+    const functionSignature = await contract.getFunctionSelector();
+    return { contractAddress, functionSignature };
   } catch (error: any) {
     throw new Error(
-      `Error getting the custom function's externalContract and functionSelector. Reason: ${error.message}`
+      `Error getting the custom function's contract address and function signature. Reason: ${error.message}`
     );
   }
 };

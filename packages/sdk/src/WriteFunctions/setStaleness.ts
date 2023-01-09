@@ -1,4 +1,4 @@
-const parseInterval = (interval: string): number => {
+export const parseInterval = (interval: string): number => {
   try {
     return parseInt(interval);
   } catch (error: any) {

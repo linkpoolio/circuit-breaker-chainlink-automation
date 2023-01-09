@@ -1,3 +1,5 @@
+
+
 export const getVolatility = async (contract: any) => {
   try {
     const currentPrice = await contract.currentPrice();

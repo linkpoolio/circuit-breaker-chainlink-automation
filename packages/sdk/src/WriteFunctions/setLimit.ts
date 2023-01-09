@@ -1,4 +1,4 @@
-const parseLimit = (limit: string): number => {
+export const parseLimit = (limit: string): number => {
   try {
     return parseInt(limit);
   } catch (error: any) {
