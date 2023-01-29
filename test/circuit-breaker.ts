@@ -64,7 +64,18 @@ describe("Circuit Breaker", function () {
       expect(e[0]).to.equal(EventType.Volatility);
     });
     it("should delete event", async function () {
+      await circuitBreaker.addEventTypes([2]);
+      let e = await circuitBreaker.getEvents();
+      expect(e.length).to.equal(1);
       await circuitBreaker.deleteEventTypes([2]);
+      e = await circuitBreaker.getEvents();
+      expect(e.length).to.equal(0);
+    });
+    it("should delete multiple events", async function () {
+      await circuitBreaker.addEventTypes([1, 2]);
+      let v = await circuitBreaker.getEvents();
+      expect(v.length).to.equal(2);
+      await circuitBreaker.deleteEventTypes([1, 2]);
       const e = await circuitBreaker.getEvents();
       expect(e.length).to.equal(0);
     });
@@ -106,8 +117,8 @@ describe("Circuit Breaker", function () {
     it("should run calculateChange on volatility and perform upkeep because of deviation", async () => {
       await circuitBreaker.addEventTypes([2]); // Volatility
 
-      const price = 10;
-      const percentage = 25;
+      const price = "1587523800000";
+      const percentage = "100000000000000000"; // 10%
       await circuitBreaker.setVolatility(price, percentage);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,

@@ -189,15 +189,15 @@
       },
       {
         "indexed": false,
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "oldPercentage",
-        "type": "int8"
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "updatedPercentage",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
     "name": "VolatilityEventUpdated",
@@ -238,44 +238,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "configuredEvents",
-    "outputs": [
-      {
-        "internalType": "enum CircuitBreaker.EventType",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "enum CircuitBreaker.EventType",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "name": "currentEventsMapping",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -342,7 +304,7 @@
     "name": "getEvents",
     "outputs": [
       {
-        "internalType": "enum CircuitBreaker.EventType[]",
+        "internalType": "uint8[]",
         "name": "",
         "type": "uint8[]"
       }
@@ -533,9 +495,9 @@
         "type": "int256"
       },
       {
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "newPercentage",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
     "name": "setVolatility",
@@ -588,9 +550,9 @@
     "name": "volatilityPercentage",
     "outputs": [
       {
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
