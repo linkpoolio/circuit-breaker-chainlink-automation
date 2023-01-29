@@ -106,9 +106,18 @@ describe("Circuit Breaker", function () {
     });
     it("emits correct event on performUpkeep", async () => {
       await circuitBreaker.addEventTypes([0]);
+      await circuitBreaker.setLimit(0, 100);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
-        "Limit"
+        "LimitReached"
+      );
+    });
+    it("not emit when not needed", async () => {
+      await circuitBreaker.addEventTypes([0]);
+      await circuitBreaker.setLimit(0, "1000000000000000000000"); // high limit set above price
+      await expect(circuitBreaker.performUpkeep("0x")).to.not.emit(
+        circuitBreaker,
+        "LimitReached"
       );
     });
   });
@@ -122,7 +131,18 @@ describe("Circuit Breaker", function () {
       await circuitBreaker.setVolatility(price, percentage);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
-        "Volatility"
+        "VolatilityReached"
+      );
+    });
+    it("should revert when setting 0 limits", async () => {
+      await expect(circuitBreaker.setLimit(0, 0)).to.be.revertedWith(
+        "Must set at least one limit"
+      );
+    });
+    it("should emit limit updated event", async () => {
+      await expect(circuitBreaker.setLimit(0, 100)).to.emit(
+        circuitBreaker,
+        "LimitUpdated"
       );
     });
   });
@@ -160,9 +180,10 @@ describe("Circuit Breaker", function () {
         "0x29e99f070000000000000000000000000000000000000000000000000000000000000309"
       );
       await circuitBreaker.addEventTypes([0]);
+      await circuitBreaker.setLimit(0, 100);
       await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
-        "Limit"
+        "LimitReached"
       );
       const number = await customMock.num();
       assert(number == 777);

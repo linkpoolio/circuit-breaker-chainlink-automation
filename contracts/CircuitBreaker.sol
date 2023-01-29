@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.17;
 
+import {ICircuitBreaker} from "./interfaces/ICircuitBreaker.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
-import {console} from "hardhat/console.sol";
 import {FixedPoint} from "./lib/FixedPoint.sol";
 
-contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
+contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterface {
     using BitMaps for BitMaps.BitMap;
     using FixedPoint for int256;
 
+    struct Limit {
+        uint256 low;
+        uint256 high;
+        bool lowActive;
+        bool highActive;
+    }
+
     address public owner;
-    int256 public limit;
+    Limit public limit;
     int256 public currentPrice;
     uint256 public volatilityPercentage;
     uint256 public interval;
@@ -33,20 +40,19 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
 
     //------------------------------ EVENTS ----------------------------------
 
-    event Limit(int256 percentage);
-    event Staleness(uint256 interval);
-    event Volatility(int256 indexed percentage, uint256 indexed currentPrice, int256 indexed lastPrice);
+    event LimitReached(uint256 lowLimit, uint256 highLimit, int256 currentPrice);
+    event StalenessReached(uint256 interval);
+    event VolatilityReached(int256 indexed percentage, uint256 indexed currentPrice, int256 indexed lastPrice);
     event KeeperRegistryAddressUpdated(address oldAddress, address newAddress);
     event EventsTriggered(EventType[] events);
-    event StalenessEventUpdated(uint256 old, uint256 updated);
-    event LimitEventUpdated(int256 old, int256 updated);
-    event VolatilityEventUpdated(
-        int256 oldPrice, int256 updatedPrice, uint256 oldPercentage, uint256 updatedPercentage
-    );
+    event StalenessUpdated(uint256 old, uint256 updated);
+    event LimitUpdated(uint256 lowLimit, uint256 highLimit, bool lowActive, bool highActive);
+    event VolatilityUpdated(int256 oldPrice, int256 updatedPrice, uint256 oldPercentage, uint256 updatedPercentage);
 
     // Errors
 
     error OnlyKeeperRegistry();
+
     // ------------------- MODIFIERS -------------------
 
     modifier onlyOwner() {
@@ -121,12 +127,17 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
 
     /**
      * @notice Sets limit event parameters.
-     * @param newLimit The price to watch for as whole number `newLimit`e8.
+     * @param newLowLimit The low range price to watch for as whole number `newLimit`e8.
      * (i.e. 1594.105 = 159410500000).
+     * @param newHighLimit The high range price to watch for as whole number `newLimit`e8.
      */
-    function setLimit(int256 newLimit) external onlyOwner {
-        limit = newLimit;
-        emit LimitEventUpdated(limit, newLimit);
+    function setLimit(uint256 newLowLimit, uint256 newHighLimit) external onlyOwner {
+        require(newLowLimit > 0 || newHighLimit > 0, "Must set at least one limit");
+        bool lowActive = newLowLimit > 0;
+        bool highActive = newHighLimit > 0;
+
+        limit = Limit(newLowLimit, newHighLimit, lowActive, highActive);
+        emit LimitUpdated(newLowLimit, newHighLimit, lowActive, highActive);
     }
 
     /**
@@ -135,7 +146,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
      */
     function setStaleness(uint256 newInterval) external onlyOwner {
         interval = newInterval;
-        emit StalenessEventUpdated(interval, newInterval);
+        emit StalenessUpdated(interval, newInterval);
     }
 
     /**
@@ -148,7 +159,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         require(newPercentage <= 1000000000000000000, "Percentage must be <= than 100%");
         currentPrice = newPrice;
         volatilityPercentage = newPercentage;
-        emit VolatilityEventUpdated(currentPrice, newPrice, volatilityPercentage, newPercentage);
+        emit VolatilityUpdated(currentPrice, newPrice, volatilityPercentage, newPercentage);
     }
 
     /**
@@ -191,7 +202,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
     }
 
     function _checkLimit(int256 price) internal view returns (bool, EventType) {
-        if (price >= limit) {
+        if (limit.lowActive && uint256(price) <= limit.low || limit.highActive && uint256(price) >= limit.high) {
             return (true, EventType.Limit);
         }
         return (false, EventType.Limit);
@@ -236,7 +247,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
                 }
             }
         }
-        if (triggeredEvents.length > 0) {
+        if (index > 0) {
             emit EventsTriggered(triggeredEvents);
             return (true, triggeredEvents);
         }
@@ -277,6 +288,13 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         usingExternalContract = true;
     }
 
+    /**
+     * @notice Check custom function status.
+     */
+    function isCustomFunctionPaused() external view returns (bool) {
+        return usingExternalContract;
+    }
+
     function checkUpkeep(bytes calldata /* checkData */ )
         external
         override
@@ -296,11 +314,13 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
             for (uint256 i = 0; i < e.length; i++) {
                 if (e[i] == EventType.Volatility) {
                     (, int256 pc) = (_calculateChange(price));
-                    emit Volatility(pc, uint256(price), currentPrice);
-                } else if (e[i] == EventType.Staleness) {
-                    emit Staleness(interval);
-                } else if (e[i] == EventType.Limit) {
-                    emit Limit(limit);
+                    emit VolatilityReached(pc, uint256(price), currentPrice);
+                }
+                if (e[i] == EventType.Staleness) {
+                    emit StalenessReached(interval);
+                }
+                if (e[i] == EventType.Limit) {
+                    emit LimitReached(limit.low, limit.high, price);
                 }
             }
         }
