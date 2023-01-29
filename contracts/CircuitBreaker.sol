@@ -121,7 +121,8 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
 
     /**
      * @notice Sets limit event parameters.
-     * @param newLimit The price to watch for.
+     * @param newLimit The price to watch for as whole number `newLimit`e8.
+     * (i.e. 1594.105 = 159410500000).
      */
     function setLimit(int256 newLimit) external onlyOwner {
         limit = newLimit;
@@ -130,7 +131,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
 
     /**
      * @notice Sets staleness event parameters.
-     * @param newInterval The interval to check against.
+     * @param newInterval The interval to check against in seconds.
      */
     function setStaleness(uint256 newInterval) external onlyOwner {
         interval = newInterval;
@@ -168,12 +169,12 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         keeperRegistryAddress = newKeeperRegistryAddress;
     }
 
-    function getLatestPrice() internal view returns (int256, uint256) {
+    function _getLatestPrice() internal view returns (int256, uint256) {
         (, int256 price,, uint256 timeStamp,) = priceFeed.latestRoundData();
         return (price, timeStamp);
     }
 
-    function checkVolatility(int256 price) internal view returns (bool, EventType, int256) {
+    function _checkVolatility(int256 price) internal view returns (bool, EventType, int256) {
         (bool v, int256 pc) = (_calculateChange(price));
         if (v) {
             return (true, EventType.Volatility, pc);
@@ -182,14 +183,14 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         return (false, EventType.Volatility, 0);
     }
 
-    function checkStaleness(uint256 timeStamp) internal view returns (bool, EventType) {
+    function _checkStaleness(uint256 timeStamp) internal view returns (bool, EventType) {
         if (block.timestamp - timeStamp > interval) {
             return (true, EventType.Staleness);
         }
         return (false, EventType.Staleness);
     }
 
-    function checkLimit(int256 price) internal view returns (bool, EventType) {
+    function _checkLimit(int256 price) internal view returns (bool, EventType) {
         if (price >= limit) {
             return (true, EventType.Limit);
         }
@@ -207,7 +208,7 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         return (false, 0);
     }
 
-    function checkEvents(int256 price, uint256 timeStamp) internal returns (bool, EventType[] memory) {
+    function _checkEvents(int256 price, uint256 timeStamp) internal returns (bool, EventType[] memory) {
         EventType[] memory triggeredEvents = new EventType[](
             configuredCount
         );
@@ -215,19 +216,19 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         for (uint256 i = 0; i < 3; i++) {
             if (currentEventsMapping.get(i)) {
                 if (EventType(i) == EventType.Volatility) {
-                    (bool volEvent, EventType ev,) = checkVolatility(price);
+                    (bool volEvent, EventType ev,) = _checkVolatility(price);
                     if (volEvent) {
                         triggeredEvents[index] = ev;
                         index++;
                     }
                 } else if (EventType(i) == EventType.Staleness) {
-                    (bool stalenessEvent, EventType es) = checkStaleness(timeStamp);
+                    (bool stalenessEvent, EventType es) = _checkStaleness(timeStamp);
                     if (stalenessEvent) {
                         triggeredEvents[index] = es;
                         index++;
                     }
                 } else if (EventType(i) == EventType.Limit) {
-                    (bool limitEvent, EventType el) = checkLimit(price);
+                    (bool limitEvent, EventType el) = _checkLimit(price);
                     if (limitEvent) {
                         triggeredEvents[index] = el;
                         index++;
@@ -282,15 +283,15 @@ contract CircuitBreaker is Pausable, AutomationCompatibleInterface {
         whenNotPaused
         returns (bool upkeepNeeded, bytes memory /* performData */ )
     {
-        (int256 price, uint256 timestamp) = getLatestPrice();
+        (int256 price, uint256 timestamp) = _getLatestPrice();
 
-        (bool needed,) = checkEvents(price, timestamp);
+        (bool needed,) = _checkEvents(price, timestamp);
         upkeepNeeded = needed;
     }
 
     function performUpkeep(bytes calldata /* performData */ ) external override whenNotPaused {
-        (int256 price, uint256 timeStamp) = getLatestPrice();
-        (bool upkeepNeeded, EventType[] memory e) = checkEvents(price, timeStamp);
+        (int256 price, uint256 timeStamp) = _getLatestPrice();
+        (bool upkeepNeeded, EventType[] memory e) = _checkEvents(price, timeStamp);
         if (upkeepNeeded) {
             for (uint256 i = 0; i < e.length; i++) {
                 if (e[i] == EventType.Volatility) {
