@@ -62,12 +62,24 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "lowLimit",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "highLimit",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
         "internalType": "int256",
-        "name": "percentage",
+        "name": "currentPrice",
         "type": "int256"
       }
     ],
-    "name": "Limit",
+    "name": "LimitReached",
     "type": "event"
   },
   {
@@ -75,18 +87,30 @@
     "inputs": [
       {
         "indexed": false,
-        "internalType": "int256",
-        "name": "old",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "lowLimit",
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "int256",
-        "name": "updated",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "highLimit",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "lowActive",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "highActive",
+        "type": "bool"
       }
     ],
-    "name": "LimitEventUpdated",
+    "name": "LimitUpdated",
     "type": "event"
   },
   {
@@ -112,7 +136,7 @@
         "type": "uint256"
       }
     ],
-    "name": "Staleness",
+    "name": "StalenessReached",
     "type": "event"
   },
   {
@@ -131,7 +155,7 @@
         "type": "uint256"
       }
     ],
-    "name": "StalenessEventUpdated",
+    "name": "StalenessUpdated",
     "type": "event"
   },
   {
@@ -169,7 +193,7 @@
         "type": "int256"
       }
     ],
-    "name": "Volatility",
+    "name": "VolatilityReached",
     "type": "event"
   },
   {
@@ -189,18 +213,18 @@
       },
       {
         "indexed": false,
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "oldPercentage",
-        "type": "int8"
+        "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "updatedPercentage",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
-    "name": "VolatilityEventUpdated",
+    "name": "VolatilityUpdated",
     "type": "event"
   },
   {
@@ -238,44 +262,6 @@
       }
     ],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "configuredEvents",
-    "outputs": [
-      {
-        "internalType": "enum CircuitBreaker.EventType",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "enum CircuitBreaker.EventType",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "name": "currentEventsMapping",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -342,7 +328,7 @@
     "name": "getEvents",
     "outputs": [
       {
-        "internalType": "enum CircuitBreaker.EventType[]",
+        "internalType": "uint8[]",
         "name": "",
         "type": "uint8[]"
       }
@@ -358,6 +344,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isCustomFunctionPaused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -394,9 +393,24 @@
     "name": "limit",
     "outputs": [
       {
-        "internalType": "int256",
-        "name": "",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "low",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "high",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "lowActive",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "highActive",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -502,9 +516,14 @@
   {
     "inputs": [
       {
-        "internalType": "int256",
-        "name": "newLimit",
-        "type": "int256"
+        "internalType": "uint256",
+        "name": "newLowLimit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newHighLimit",
+        "type": "uint256"
       }
     ],
     "name": "setLimit",
@@ -533,9 +552,9 @@
         "type": "int256"
       },
       {
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "newPercentage",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
     "name": "setVolatility",
@@ -588,9 +607,9 @@
     "name": "volatilityPercentage",
     "outputs": [
       {
-        "internalType": "int8",
+        "internalType": "uint256",
         "name": "",
-        "type": "int8"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
