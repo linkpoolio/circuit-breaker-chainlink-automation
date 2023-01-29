@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@typechain/ethers-v5": "^10.2.0",
-    "dotenv": "^16.0.3",
-    "fixidity": "github:CementDAO/Fixidity"
+    "dotenv": "^16.0.3"
   }
 }
