@@ -12,6 +12,24 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
     using BitMaps for BitMaps.BitMap;
     using FixedPoint for int256;
 
+    Limit public limit;
+    ExternalContract internal externalContract;
+    int256 public currentPrice;
+    uint256 public volatilityPercentage;
+    uint256 public interval;
+    address public owner;
+    address public keeperRegistryAddress;
+    uint8 configuredCount = 0;
+    AggregatorV3Interface public priceFeed;
+    BitMaps.BitMap private currentEventsMapping;
+
+    /**
+     * @notice Struct to store the low and high limit
+     * @param low low limit
+     * @param high high limit
+     * @param lowActive checking low limit status
+     * @param highActive checking high limit status
+     */
     struct Limit {
         uint256 low;
         uint256 high;
@@ -19,18 +37,17 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
         bool highActive;
     }
 
-    address public owner;
-    Limit public limit;
-    int256 public currentPrice;
-    uint256 public volatilityPercentage;
-    uint256 public interval;
-    address public externalContract;
-    bytes public functionSelector;
-    bool public usingExternalContract;
-    address public keeperRegistryAddress;
-    AggregatorV3Interface public priceFeed;
-    BitMaps.BitMap private currentEventsMapping;
-    uint8 configuredCount = 0;
+    /**
+     * @notice Struct to store the external contract address and function selector
+     * @param contractAddress address of the external contract
+     * @param functionSelector function selector of the external contract
+     * @param status status of the external contract used to enable/disable the contract
+     */
+    struct ExternalContract {
+        address contractAddress;
+        bytes functionSelector;
+        bool status;
+    }
 
     enum EventType {
         Limit,
@@ -258,7 +275,7 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      * @notice Custom function to be called by the keeper.
      */
     function customFunction() public onlyContract {
-        (bool ok,) = externalContract.call(functionSelector);
+        (bool ok,) = externalContract.contractAddress.call(externalContract.functionSelector);
         require(ok, "Custom function failed.");
     }
 
@@ -269,30 +286,33 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      */
     function setCustomFunction(address externalContractAddress, bytes memory functionSelectorHex) external onlyOwner {
         require(externalContractAddress != address(0), "Invalid address.");
-        externalContract = externalContractAddress;
-        functionSelector = functionSelectorHex;
-        usingExternalContract = true;
+        require(functionSelectorHex.length > 0, "Invalid function selector.");
+        externalContract = ExternalContract(externalContractAddress, functionSelectorHex, true);
     }
 
     /**
      * @notice Pause custom function from running in upkeep.
      */
     function pauseCustomFunction() external onlyOwner {
-        usingExternalContract = false;
+        externalContract.status = false;
     }
 
     /**
      * @notice Unpause custom function from running in upkeep.
      */
     function unpauseCustomFunction() external onlyOwner {
-        usingExternalContract = true;
+        externalContract.status = true;
     }
 
     /**
      * @notice Check custom function status.
      */
     function isCustomFunctionPaused() external view returns (bool) {
-        return usingExternalContract;
+        return externalContract.status;
+    }
+
+    function getCustomFunctionInfo() external view returns (address, bytes memory, bool) {
+        return (externalContract.contractAddress, externalContract.functionSelector, externalContract.status);
     }
 
     function checkUpkeep(bytes calldata /* checkData */ )
@@ -324,7 +344,7 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
                 }
             }
         }
-        if (usingExternalContract) {
+        if (externalContract.status) {
             customFunction();
         }
     }

@@ -152,8 +152,10 @@ describe("Circuit Breaker", function () {
         customMock.address,
         "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
       );
+      const [address, functionSig, status] =
+        await circuitBreaker.getCustomFunctionInfo();
       assert(
-        (await circuitBreaker.functionSelector()) ===
+        functionSig ===
           "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
       );
     });
@@ -172,7 +174,7 @@ describe("Circuit Breaker", function () {
         "0x29e99f070000000000000000000000000000000000000000000000000000000000000045"
       );
       await circuitBreaker.pauseCustomFunction();
-      assert((await circuitBreaker.usingExternalContract()) === false);
+      assert((await circuitBreaker.isCustomFunctionPaused()) === false);
     });
     it("should run function in upkeep", async () => {
       await circuitBreaker.setCustomFunction(

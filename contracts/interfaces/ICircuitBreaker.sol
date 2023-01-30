@@ -17,6 +17,7 @@ interface ICircuitBreaker {
     function pauseCustomFunction() external;
     function unpauseCustomFunction() external;
     function isCustomFunctionPaused() external view returns (bool);
+    function getCustomFunctionInfo() external view returns (address, bytes memory, bool);
 
     function pause() external;
     function unpause() external;
