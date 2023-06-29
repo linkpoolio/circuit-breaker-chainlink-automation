@@ -17,7 +17,6 @@ describe("Circuit Breaker", function () {
     limit: any,
     interval: any,
     price: any,
-    events: any,
     customMock: any;
   let circuitBreaker: any;
   let keeperRegistryAddress: any;
@@ -29,22 +28,14 @@ describe("Circuit Breaker", function () {
     limit = 0;
     interval = 0;
     price = 0;
-    events = [];
     customMock = await deploy("CustomMock");
-    circuitBreaker = await deploy("CircuitBreaker", [
-      feed,
-      events,
-      owner.address,
-    ]);
+    circuitBreaker = await deploy("CircuitBreaker", [feed, owner.address]);
     keeperRegistryAddress = "0x02777053d6764996e594c3E88AF1D58D5363a2e6"; // Mainnet Registry
     autoID =
       "79397418041944963404933264302166499203692745230067317398393317479845798937310";
   });
 
   describe("constructor", function () {
-    it("sets interval", async () => {
-      assert.equal(await circuitBreaker.interval(), 0);
-    });
     it("sets feed", async () => {
       assert.equal(
         await circuitBreaker.priceFeed(),
@@ -116,6 +107,23 @@ describe("Circuit Breaker", function () {
       await circuitBreaker.addEventTypes([0]);
       await circuitBreaker.setLimit(0, "1000000000000000000000"); // high limit set above price
       await expect(circuitBreaker.performUpkeep("0x")).to.not.emit(
+        circuitBreaker,
+        "LimitReached"
+      );
+    });
+    it("should prevent event from triggering again if flag is set", async function () {
+      await circuitBreaker.addEventTypes([0]); // Add Volatility event
+      await circuitBreaker.setLimit(0, 100);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
+        circuitBreaker,
+        "LimitReached"
+      );
+      await expect(circuitBreaker.performUpkeep("0x")).to.not.emit(
+        circuitBreaker,
+        "LimitReached"
+      );
+      await circuitBreaker.setEventFlag(0, false);
+      await expect(circuitBreaker.performUpkeep("0x")).to.emit(
         circuitBreaker,
         "LimitReached"
       );

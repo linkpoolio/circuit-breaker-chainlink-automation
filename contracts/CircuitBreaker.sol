@@ -8,7 +8,11 @@ import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {FixedPoint} from "./lib/FixedPoint.sol";
 
-contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterface {
+contract CircuitBreaker is
+    ICircuitBreaker,
+    Pausable,
+    AutomationCompatibleInterface
+{
     using BitMaps for BitMaps.BitMap;
     using FixedPoint for int256;
 
@@ -22,6 +26,8 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
     uint8 configuredCount = 0;
     AggregatorV3Interface public priceFeed;
     BitMaps.BitMap private currentEventsMapping;
+
+    mapping(uint8 => bool) public eventFlags;
 
     /**
      * @notice Struct to store the low and high limit
@@ -57,14 +63,32 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
 
     //------------------------------ EVENTS ----------------------------------
 
-    event LimitReached(uint256 lowLimit, uint256 highLimit, int256 currentPrice);
+    event LimitReached(
+        uint256 lowLimit,
+        uint256 highLimit,
+        int256 currentPrice
+    );
     event StalenessReached(uint256 interval);
-    event VolatilityReached(int256 indexed percentage, uint256 indexed currentPrice, int256 indexed lastPrice);
+    event VolatilityReached(
+        int256 indexed percentage,
+        uint256 indexed currentPrice,
+        int256 indexed lastPrice
+    );
     event KeeperRegistryAddressUpdated(address oldAddress, address newAddress);
     event EventsTriggered(EventType[] events);
     event StalenessUpdated(uint256 old, uint256 updated);
-    event LimitUpdated(uint256 lowLimit, uint256 highLimit, bool lowActive, bool highActive);
-    event VolatilityUpdated(int256 oldPrice, int256 updatedPrice, uint256 oldPercentage, uint256 updatedPercentage);
+    event LimitUpdated(
+        uint256 lowLimit,
+        uint256 highLimit,
+        bool lowActive,
+        bool highActive
+    );
+    event VolatilityUpdated(
+        int256 oldPrice,
+        int256 updatedPrice,
+        uint256 oldPercentage,
+        uint256 updatedPercentage
+    );
 
     // Errors
 
@@ -89,16 +113,20 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
         _;
     }
 
-    constructor(address feed, uint8[] memory eventTypes, address keeperAddress) {
+    constructor(address feed, address keeperAddress) {
         owner = msg.sender;
         priceFeed = AggregatorV3Interface(feed);
         setKeeperRegistryAddress(keeperAddress);
-        for (uint256 i = 0; i < eventTypes.length; i++) {
-            require(eventTypes[i] < 3, "Not a valid event type");
-            require(!currentEventsMapping.get(eventTypes[i]), "Event type already configured");
-            currentEventsMapping.set(eventTypes[i]);
-            configuredCount++;
-        }
+    }
+
+    /**
+     * @notice Set the flag for a specific event.
+     * @param eventType The type of event.
+     * @param flag The new value of the flag.
+     */
+    function setEventFlag(uint8 eventType, bool flag) external onlyOwner {
+        require(eventType < 3, "Not a valid event type");
+        eventFlags[eventType] = flag;
     }
 
     /**
@@ -124,9 +152,13 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
     function addEventTypes(uint8[] memory eventTypes) external onlyOwner {
         for (uint8 i = 0; i < eventTypes.length; i++) {
             require(eventTypes[i] < 3, "Not a valid event type");
-            require(!currentEventsMapping.get(eventTypes[i]), "Event type already configured");
+            require(
+                !currentEventsMapping.get(eventTypes[i]),
+                "Event type already configured"
+            );
             currentEventsMapping.set(eventTypes[i]);
             configuredCount++;
+            eventFlags[eventTypes[i]] = false; // Set the event flag to false.
         }
     }
 
@@ -148,8 +180,14 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      * (i.e. 1594.105 = 159410500000).
      * @param newHighLimit The high range price to watch for as whole number `newLimit`e8.
      */
-    function setLimit(uint256 newLowLimit, uint256 newHighLimit) external onlyOwner {
-        require(newLowLimit > 0 || newHighLimit > 0, "Must set at least one limit");
+    function setLimit(
+        uint256 newLowLimit,
+        uint256 newHighLimit
+    ) external onlyOwner {
+        require(
+            newLowLimit > 0 || newHighLimit > 0,
+            "Must set at least one limit"
+        );
         bool lowActive = newLowLimit > 0;
         bool highActive = newHighLimit > 0;
 
@@ -172,11 +210,22 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      * @param newPercentage The percentage change to check against. Must be wei units and not greater than 100% (i.e. 100% = 1000000000000000000).
      * (i.e. 1% = 10000000000000000).
      */
-    function setVolatility(int256 newPrice, uint256 newPercentage) external onlyOwner {
-        require(newPercentage <= 1000000000000000000, "Percentage must be <= than 100%");
+    function setVolatility(
+        int256 newPrice,
+        uint256 newPercentage
+    ) external onlyOwner {
+        require(
+            newPercentage <= 1000000000000000000,
+            "Percentage must be <= than 100%"
+        );
         currentPrice = newPrice;
         volatilityPercentage = newPercentage;
-        emit VolatilityUpdated(currentPrice, newPrice, volatilityPercentage, newPercentage);
+        emit VolatilityUpdated(
+            currentPrice,
+            newPrice,
+            volatilityPercentage,
+            newPercentage
+        );
     }
 
     /**
@@ -191,18 +240,25 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      * @notice Sets the keeper registry address.
      * @param newKeeperRegistryAddress The address of the keeper registry.
      */
-    function setKeeperRegistryAddress(address newKeeperRegistryAddress) public onlyOwner {
+    function setKeeperRegistryAddress(
+        address newKeeperRegistryAddress
+    ) public onlyOwner {
         require(newKeeperRegistryAddress != address(0));
-        emit KeeperRegistryAddressUpdated(keeperRegistryAddress, newKeeperRegistryAddress);
+        emit KeeperRegistryAddressUpdated(
+            keeperRegistryAddress,
+            newKeeperRegistryAddress
+        );
         keeperRegistryAddress = newKeeperRegistryAddress;
     }
 
     function _getLatestPrice() internal view returns (int256, uint256) {
-        (, int256 price,, uint256 timeStamp,) = priceFeed.latestRoundData();
+        (, int256 price, , uint256 timeStamp, ) = priceFeed.latestRoundData();
         return (price, timeStamp);
     }
 
-    function _checkVolatility(int256 price) internal view returns (bool, EventType, int256) {
+    function _checkVolatility(
+        int256 price
+    ) internal view returns (bool, EventType, int256) {
         (bool v, int256 pc) = (_calculateChange(price));
         if (v) {
             return (true, EventType.Volatility, pc);
@@ -211,7 +267,9 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
         return (false, EventType.Volatility, 0);
     }
 
-    function _checkStaleness(uint256 timeStamp) internal view returns (bool, EventType) {
+    function _checkStaleness(
+        uint256 timeStamp
+    ) internal view returns (bool, EventType) {
         if (block.timestamp - timeStamp > interval) {
             return (true, EventType.Staleness);
         }
@@ -219,16 +277,25 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
     }
 
     function _checkLimit(int256 price) internal view returns (bool, EventType) {
-        if (limit.lowActive && uint256(price) <= limit.low || limit.highActive && uint256(price) >= limit.high) {
+        if (
+            (limit.lowActive && uint256(price) <= limit.low) ||
+            (limit.highActive && uint256(price) >= limit.high)
+        ) {
             return (true, EventType.Limit);
         }
         return (false, EventType.Limit);
     }
 
-    function _calculateChange(int256 price) internal view returns (bool, int256) {
-        int256 percentageChange = (price - currentPrice).divd(currentPrice).muld(1e18);
+    function _calculateChange(
+        int256 price
+    ) internal view returns (bool, int256) {
+        int256 percentageChange = (price - currentPrice)
+            .divd(currentPrice)
+            .muld(1e18);
 
-        int256 absValue = percentageChange < 0 ? -percentageChange : percentageChange;
+        int256 absValue = percentageChange < 0
+            ? -percentageChange
+            : percentageChange;
         if (uint256(absValue) > volatilityPercentage) {
             return (true, absValue);
         }
@@ -236,27 +303,34 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
         return (false, 0);
     }
 
-    function _checkEvents(int256 price, uint256 timeStamp) internal returns (bool, EventType[] memory) {
-        EventType[] memory triggeredEvents = new EventType[](
-            configuredCount
-        );
+    function _checkEvents(
+        int256 price,
+        uint256 timeStamp
+    ) internal returns (bool, EventType[] memory) {
+        EventType[] memory triggeredEvents = new EventType[](configuredCount);
         uint8 index = 0;
         for (uint256 i = 0; i < 3; i++) {
-            if (currentEventsMapping.get(i)) {
+            if (currentEventsMapping.get(i) && !eventFlags[uint8(i)]) {
+                bool eventTriggered = false;
                 if (EventType(i) == EventType.Volatility) {
-                    (bool volEvent, EventType ev,) = _checkVolatility(price);
+                    (bool volEvent, EventType ev, ) = _checkVolatility(price);
+                    eventTriggered = volEvent;
                     if (volEvent) {
                         triggeredEvents[index] = ev;
                         index++;
                     }
                 } else if (EventType(i) == EventType.Staleness) {
-                    (bool stalenessEvent, EventType es) = _checkStaleness(timeStamp);
+                    (bool stalenessEvent, EventType es) = _checkStaleness(
+                        timeStamp
+                    );
+                    eventTriggered = stalenessEvent;
                     if (stalenessEvent) {
                         triggeredEvents[index] = es;
                         index++;
                     }
                 } else if (EventType(i) == EventType.Limit) {
                     (bool limitEvent, EventType el) = _checkLimit(price);
+                    eventTriggered = limitEvent;
                     if (limitEvent) {
                         triggeredEvents[index] = el;
                         index++;
@@ -264,18 +338,16 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
                 }
             }
         }
-        if (index > 0) {
-            emit EventsTriggered(triggeredEvents);
-            return (true, triggeredEvents);
-        }
-        return (false, triggeredEvents);
+        return (index > 0, triggeredEvents);
     }
 
     /**
      * @notice Custom function to be called by the keeper.
      */
     function customFunction() public onlyContract {
-        (bool ok,) = externalContract.contractAddress.call(externalContract.functionSelector);
+        (bool ok, ) = externalContract.contractAddress.call(
+            externalContract.functionSelector
+        );
         require(ok, "Custom function failed.");
     }
 
@@ -284,10 +356,17 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
      * @param externalContractAddress The address of the external contract.
      * @param functionSelectorHex The function selector of the external contract.
      */
-    function setCustomFunction(address externalContractAddress, bytes memory functionSelectorHex) external onlyOwner {
+    function setCustomFunction(
+        address externalContractAddress,
+        bytes memory functionSelectorHex
+    ) external onlyOwner {
         require(externalContractAddress != address(0), "Invalid address.");
         require(functionSelectorHex.length > 0, "Invalid function selector.");
-        externalContract = ExternalContract(externalContractAddress, functionSelectorHex, true);
+        externalContract = ExternalContract(
+            externalContractAddress,
+            functionSelectorHex,
+            true
+        );
     }
 
     /**
@@ -311,36 +390,61 @@ contract CircuitBreaker is ICircuitBreaker, Pausable, AutomationCompatibleInterf
         return externalContract.status;
     }
 
-    function getCustomFunctionInfo() external view returns (address, bytes memory, bool) {
-        return (externalContract.contractAddress, externalContract.functionSelector, externalContract.status);
+    function getCustomFunctionInfo()
+        external
+        view
+        returns (address, bytes memory, bool)
+    {
+        return (
+            externalContract.contractAddress,
+            externalContract.functionSelector,
+            externalContract.status
+        );
     }
 
-    function checkUpkeep(bytes calldata /* checkData */ )
+    function checkUpkeep(
+        bytes calldata /* checkData */
+    )
         external
         override
         whenNotPaused
-        returns (bool upkeepNeeded, bytes memory /* performData */ )
+        returns (bool upkeepNeeded, bytes memory /* performData */)
     {
         (int256 price, uint256 timestamp) = _getLatestPrice();
 
-        (bool needed,) = _checkEvents(price, timestamp);
+        (bool needed, ) = _checkEvents(price, timestamp);
         upkeepNeeded = needed;
     }
 
-    function performUpkeep(bytes calldata /* performData */ ) external override whenNotPaused {
+    function performUpkeep(
+        bytes calldata /* performData */
+    ) external override whenNotPaused {
         (int256 price, uint256 timeStamp) = _getLatestPrice();
-        (bool upkeepNeeded, EventType[] memory e) = _checkEvents(price, timeStamp);
+        (bool upkeepNeeded, EventType[] memory e) = _checkEvents(
+            price,
+            timeStamp
+        );
         if (upkeepNeeded) {
             for (uint256 i = 0; i < e.length; i++) {
-                if (e[i] == EventType.Volatility) {
-                    (, int256 pc) = (_calculateChange(price));
-                    emit VolatilityReached(pc, uint256(price), currentPrice);
-                }
-                if (e[i] == EventType.Staleness) {
-                    emit StalenessReached(interval);
-                }
-                if (e[i] == EventType.Limit) {
-                    emit LimitReached(limit.low, limit.high, price);
+                // Check if the event has already been triggered by checking the flag
+                if (!eventFlags[uint8(e[i])]) {
+                    if (e[i] == EventType.Volatility) {
+                        (, int256 pc) = (_calculateChange(price));
+                        emit VolatilityReached(
+                            pc,
+                            uint256(price),
+                            currentPrice
+                        );
+                    }
+                    if (e[i] == EventType.Staleness) {
+                        emit StalenessReached(interval);
+                    }
+                    if (e[i] == EventType.Limit) {
+                        emit LimitReached(limit.low, limit.high, price);
+                    }
+
+                    // Set the flag for the event to prevent it from triggering again
+                    eventFlags[uint8(e[i])] = true;
                 }
             }
         }

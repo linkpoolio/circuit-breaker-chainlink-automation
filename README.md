@@ -29,8 +29,9 @@ $ git clone git@github.com:linkpoolio/circuit-breaker-chainlink-automation.git
 
 ```
 # from /root
-$ echo "NETWORK=ganache" >> .env
+$ echo "NETWORK=hardhat" >> .env
 $ echo "LOCAL_RPC_URL=\"http://127.0.0.1:7545\"" >> .env
+$ echo "MAINNET_RPC_URL=\"https://eth.llamarpc.com\"" >> .env
 ```
 
 ### 3. Deploy contract
