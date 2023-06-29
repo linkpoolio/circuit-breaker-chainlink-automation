@@ -1,4 +1,4 @@
-import { ethers, network } from "hardhat";
+import { network } from "hardhat";
 import { deploy } from "../test/utils/helpers";
 import { networkConfig } from "../network.config";
 
@@ -7,13 +7,11 @@ async function main() {
     network.config.chainId != undefined ? network.config.chainId : 31337;
   const networkName = {
     name: networkConfig[chainId].name,
-    events: networkConfig[chainId].events,
     feed: networkConfig[chainId].feed,
     keepersRegistry: networkConfig[chainId].keepersRegistry,
   };
   const cb = await deploy("CircuitBreaker", [
     networkName.feed,
-    networkName.events,
     networkName.keepersRegistry,
   ]);
 
