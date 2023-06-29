@@ -169,6 +169,7 @@ contract CircuitBreaker is
     function deleteEventTypes(uint8[] memory eventTypes) external onlyOwner {
         for (uint8 i = 0; i < eventTypes.length; i++) {
             require(eventTypes[i] < 3, "Not a valid event type");
+            eventFlags[eventTypes[i]] = false;
             currentEventsMapping.unset(eventTypes[i]);
             configuredCount--;
         }
@@ -192,6 +193,7 @@ contract CircuitBreaker is
         bool highActive = newHighLimit > 0;
 
         limit = Limit(newLowLimit, newHighLimit, lowActive, highActive);
+        eventFlags[uint8(EventType.Limit)] = false;
         emit LimitUpdated(newLowLimit, newHighLimit, lowActive, highActive);
     }
 
@@ -201,6 +203,7 @@ contract CircuitBreaker is
      */
     function setStaleness(uint256 newInterval) external onlyOwner {
         interval = newInterval;
+        eventFlags[uint8(EventType.Staleness)] = false;
         emit StalenessUpdated(interval, newInterval);
     }
 
@@ -220,6 +223,7 @@ contract CircuitBreaker is
         );
         currentPrice = newPrice;
         volatilityPercentage = newPercentage;
+        eventFlags[uint8(EventType.Volatility)] = false;
         emit VolatilityUpdated(
             currentPrice,
             newPrice,

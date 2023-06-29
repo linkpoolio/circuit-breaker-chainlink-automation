@@ -43,9 +43,9 @@ const config: Config = {
     // },
     hardhat: {
       // // comment out forking to run tests on a local chain
-      // forking: {
-      //   url: MAINNET_RPC_URL,
-      // },
+      forking: {
+        url: MAINNET_RPC_URL,
+      },
     },
     // mainnet: {
     //   url: MAINNET_RPC_URL,
